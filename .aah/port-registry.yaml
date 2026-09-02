@@ -86,7 +86,8 @@ activities:
   produces:
   - .aah/architecture/applications_wireframes/README.md
   trigger_reason: activated via activates[] (answer to 'custom-ui-required')
-  status: pending
-  started_at: null
-  completed_at: null
-  artifacts_produced: []
+  status: completed
+  started_at: '2026-09-02T15:53:45Z'
+  completed_at: '2026-09-02T16:16:05Z'
+  artifacts_produced:
+  - .aah/architecture/applications_wireframes/README.md

@@ -2,7 +2,9 @@ project_name: unit1-capstone
 project_type: brownfield
 current_phase: architecture
 complexity_tier: null
-completed_artifacts: []
+completed_artifacts:
+- architecture/applications_wireframes/README.md
+- architecture/design-spec.yaml
 stack_choices: {}
 features:
   runtime_profile_v1: report_only
@@ -21,7 +23,7 @@ delegated_to: null
 delegation_timestamp: null
 synthesis_mode: null
 created_at: '2026-09-02T14:28:40.148326+00:00'
-updated_at: '2026-09-02T15:43:30.028962+00:00'
+updated_at: '2026-09-02T16:15:38.024021+00:00'
 version_control:
   enabled: true
   provider: github

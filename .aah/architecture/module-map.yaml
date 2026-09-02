@@ -1,0 +1,188 @@
+# module-map.yaml
+# Single source of truth for module segregation, vertical slicing, and execution order.
+# Project: unit1-capstone (Spoonful)
+# Written by: /aah-arch
+# Path: .aah/architecture/module-map.yaml
+
+modules:
+
+  - id: MOD-000
+    name: Walking Skeleton — Backend Verification & Frontend Scaffold
+    description: >
+      Verify the existing Express 5 / MongoDB backend (all API endpoints reachable and returning
+      correct data). Scaffold the React 19 + TypeScript + Vite frontend: router with all 7 route stubs,
+      AuthContext + useContext, axios instance pointed at localhost:3000, RequireAuth wrapper,
+      Navbar shell, and env-check.cjs that validates required env vars at startup.
+    demo_criteria: >
+      Backend health check passes (curl http://localhost:3000/api/recipes returns 200).
+      React dev server starts (http://localhost:5173) and all 7 routes render without crashes.
+    smoke_test: >
+      curl http://localhost:3000/api/recipes &&
+      cd client && npm run dev (visit http://localhost:5173 — all nav links render stub pages)
+    layers:
+      db:
+        - MongoDB/Mongoose connection verified
+        - User and Recipe models confirmed
+      api:
+        - All existing Express routes tested (auth, recipes, AI proxy)
+      ui/ux:
+        - Vite + TypeScript project initialized
+        - React Router 6 with 7 route stubs
+        - AuthContext + RequireAuth scaffold
+        - Axios instance (baseURL localhost:3000, JWT header interceptor)
+        - Navbar shell component
+        - env-check.cjs (validates MONGODB_URI, JWT_SECRET, GEMINI_API_KEY at startup)
+    depends_on: []
+    cloud_services: []
+
+  - id: MOD-001
+    name: Recipe Discovery — Landing, Browse & Detail
+    description: >
+      Guest-accessible front door to Spoonful: Landing page with CTAs, Browse page displaying
+      RecipeCard grid with SearchBar (filter by title/tag/ingredient), and Recipe Detail page
+      showing ingredients, instructions, and image. Connects to GET /api/recipes and
+      GET /api/recipes/:id. Desktop-first responsive CSS (1024/768/480px breakpoints).
+    demo_criteria: >
+      Guest visits http://localhost:5173, sees landing page with "Explore Recipes" and "Login" CTAs,
+      clicks through to /recipes and sees a grid of recipe cards, types in the search bar and results
+      filter live, clicks a card and sees the full recipe detail page with ingredients and instructions.
+    smoke_test: >
+      Open http://localhost:5173 — verify CTAs visible.
+      Navigate to /recipes — verify recipe cards load from GET /api/recipes.
+      Type in SearchBar — verify results filter.
+      Click a card — verify /recipes/:id shows full recipe data.
+    layers:
+      api:
+        - GET /api/recipes (with optional search/filter query params)
+        - GET /api/recipes/:id
+      ui/ux:
+        - LandingPage (/) — welcome hero + CTA buttons
+        - RecipesPage (/recipes) — card grid + SearchBar
+        - RecipeCard component — title, image, description, tags
+        - SearchBar component — real-time filter by title/tag/ingredient
+        - RecipeDetailPage (/recipes/:id) — full ingredients, instructions, image
+        - Per-component CSS (responsive, desktop-first)
+    depends_on:
+      - MOD-000
+    cloud_services: []
+
+  - id: MOD-002
+    name: Creator Auth & Dashboard
+    description: >
+      Full authentication flow for recipe creators: Signup and Login pages posting to the
+      Express JWT endpoints, JWT stored in localStorage, AuthContext populated on success, and
+      redirect to /dashboard on login. Dashboard page lists the authenticated creator's own recipes.
+      Unauthenticated access to /dashboard redirects to /login via RequireAuth.
+    demo_criteria: >
+      New user signs up at /signup → redirected to /dashboard (empty list).
+      Existing creator logs in at /login → redirected to /dashboard showing their recipes.
+      Navigating to /dashboard while logged out redirects to /login.
+    smoke_test: >
+      POST /api/users/signup with new credentials → 201.
+      Open http://localhost:5173/login, enter credentials, verify redirect to /dashboard.
+      Log out (clear localStorage), navigate to /dashboard, verify redirect to /login.
+    layers:
+      api:
+        - POST /api/users/signup
+        - POST /api/users/login
+        - GET /api/recipes (filtered by owner on dashboard — or POST /api/users/me)
+      ui/ux:
+        - SignupPage (/signup) — email + password form
+        - LoginPage (/login) — email + password form
+        - AuthContext updated with JWT + user on success
+        - DashboardPage (/dashboard) — protected route, creator's recipe list
+        - Per-component CSS (responsive)
+    depends_on:
+      - MOD-000
+    cloud_services: []
+
+  - id: MOD-003
+    name: Recipe CRUD — Create, Edit & Delete
+    description: >
+      Creator-only recipe management from the dashboard: RecipeForm to create a new recipe
+      (POST /api/recipes), edit an existing recipe with prefilled form (PUT /api/recipes/:id),
+      and delete with a confirmation dialog (DELETE /api/recipes/:id). All operations update
+      the dashboard UI without a full page reload.
+    demo_criteria: >
+      Logged-in creator fills out RecipeForm (title, image URL, ingredients, instructions, tags)
+      and submits → recipe appears in dashboard list. Clicks "Edit" → form prefilled → saves →
+      updates in list. Clicks "Delete" → confirmation dialog → confirms → recipe removed from list.
+    smoke_test: >
+      Logged in at /dashboard — create recipe via form, verify card appears.
+      Click Edit — verify form prefilled — save — verify title updated.
+      Click Delete — confirm dialog — confirm — verify card removed.
+    layers:
+      api:
+        - POST /api/recipes (create)
+        - PUT /api/recipes/:id (edit)
+        - DELETE /api/recipes/:id (delete)
+      ui/ux:
+        - RecipeForm component — title, image URL, ingredients (dynamic list), instructions (dynamic list), tags, description
+        - Create flow (New Recipe button → form → POST → dashboard update)
+        - Edit flow (Edit button → prefilled form → PUT → dashboard update)
+        - Delete flow (Delete button → confirmation dialog → DELETE → dashboard update)
+        - Per-component CSS (responsive)
+    depends_on:
+      - MOD-002
+    cloud_services: []
+
+  - id: MOD-004
+    name: AI Assistant — Gemini Text Analyzer
+    description: >
+      Dedicated /ai-assistant route (no auth required, linked from Navbar) with a textarea for
+      pasting text and three action buttons (Summarize / Extract Key Points / Classify Tone).
+      Each button constructs a prefixed prompt and calls POST /api/ai/stream, reading the
+      SSE ReadableStream to render the response token-by-token into the UI. Last 3
+      prompt/response pairs kept in React state as session history.
+    demo_criteria: >
+      User (guest) navigates to /ai-assistant from the Navbar. Pastes a paragraph of text, clicks
+      "Summarize", sees a loading state then tokens streaming in progressively. Repeats with
+      "Key Points" and "Classify Tone". Session history shows the last 3 exchanges.
+    smoke_test: >
+      Open http://localhost:5173/ai-assistant — verify link in Navbar.
+      Paste text, click Summarize — verify streamed response renders token-by-token.
+      Submit 4 total requests — verify only last 3 appear in history.
+      Submit empty text — verify client-side validation blocks the request.
+    layers:
+      api:
+        - POST /api/ai/stream (backend proxies to Gemini gemini-2.0-flash SSE)
+      ui/ux:
+        - AIAssistantPage (/ai-assistant) — textarea, 3 action buttons, streaming output pane
+        - SSE ReadableStream consumer (fetch + getReader + read loop)
+        - Session history list (last 3 pairs, React state)
+        - Loading / error states
+        - Per-component CSS (responsive)
+    depends_on:
+      - MOD-000
+    cloud_services: []
+
+  - id: MOD-005
+    name: Component Tests & Responsive Polish
+    description: >
+      Vitest + React Testing Library tests for 5 components: Navbar, RecipeCard, RecipeForm,
+      SearchBar, and LoginForm. Final responsive CSS pass verifying desktop, tablet (768px),
+      and mobile (480px) layouts across all pages.
+    demo_criteria: >
+      `npm run test` in the client directory exits 0 with 5 passing test suites.
+      App renders correctly at 1024px, 768px, and 480px viewport widths (no layout overflow,
+      no hidden interactive elements, nav readable on mobile).
+    smoke_test: >
+      cd client && npm run test (all 5 suites green).
+      Open browser DevTools, resize viewport to 480px — verify Navbar collapses/adapts,
+      RecipeCard grid stacks, forms remain usable.
+    layers:
+      testing:
+        - Navbar.test.tsx — renders links, active state
+        - RecipeCard.test.tsx — renders title, image, tags
+        - RecipeForm.test.tsx — renders fields, submit behavior
+        - SearchBar.test.tsx — renders input, onChange callback
+        - LoginForm.test.tsx — renders fields, submit callback
+      ui/ux:
+        - Responsive audit + fixes across all pages (1024/768/480px)
+        - One CSS file per component verified
+    depends_on:
+      - MOD-001
+      - MOD-002
+      - MOD-003
+      - MOD-004
+    cloud_services: []
