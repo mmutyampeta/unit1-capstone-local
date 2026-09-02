@@ -1,0 +1,310 @@
+{
+  "features": [
+    {
+      "status": "pending",
+      "id": "F-MOD-000",
+      "title": "Walking Skeleton \u2014 Backend Verification & Frontend Scaffold",
+      "module_ref": "MOD-000",
+      "description": "This module has two parallel concerns: (1) confirm the existing Express 5 / MongoDB backend is fully operational before any frontend code is written, and (2) scaffold the React 19 + TypeScript + Vite frontend with every shared structural piece the remaining modules depend on.\n\n**Backend verification (db + api layers)**\n\nThe backend server runs at `localhost:3000` with MongoDB connected via Mongoose. The existing codebase defines two Mongoose models \u2014 `User` and `Recipe` \u2014 and exposes three route groups: auth (`/api/users`), recipes (`/api/recipes`), and AI proxy (`/api/ai`). This module verifies those models and every route are reachable and return correct HTTP status codes and schema-conformant JSON payloads. No backend code is changed; only tests and the seed script are added. Authoritative model shapes are in `knowledge/backend-README.md` and `knowledge/DESIGN.md`; the running server is the source of truth.\n\n**Frontend scaffold (ui/ux layer)**\n\nA Vite 7 + React 19 + TypeScript project is initialized under `client/`. `tsconfig.json` must have `strict: true` (standard TS-TYPE-002). The scaffold delivers, and only these pieces \u2014 no page implementations:\n\n- **React Router 6 route tree** \u2014 seven route stubs: `/` (LandingPage), `/recipes` (RecipesPage), `/recipes/:id` (RecipeDetailPage), `/login` (LoginPage), `/signup` (SignupPage), `/dashboard` (DashboardPage, wrapped in RequireAuth), `/ai-assistant` (AIAssistantPage).\n- **AuthContext** \u2014 React Context + `useContext` holding `{ user, token, login, logout }`. JWT stored in `localStorage`. `login()` saves the token; `logout()` clears it and redirects to `/`.\n- **RequireAuth** \u2014 wrapper component that reads AuthContext; redirects unauthenticated visitors to `/login`.\n- **Axios instance** \u2014 configured with `baseURL: 'http://localhost:3000'` and a request interceptor that attaches `Authorization: Bearer <token>` from AuthContext when a token is present.\n- **Navbar shell** \u2014 renders the persistent top-nav per the navigation contract in `.aah/architecture/design-spec.yaml` (navigation section): logo linking to `/`, Recipes, AI Assistant links visible to all; Login visible to guests only; Dashboard and Log Out visible to authenticated creators only. Styled to the \"Modern Pantry\" direction defined in `.aah/architecture/design/direction.html` \u2014 white surface nav, sage-green (`#3A7D5E`) accent, pill-shaped CTA, bold sans display font \u2014 using only the token variables defined in `.aah/architecture/design-spec.yaml` (tokens block). The Navbar shell appears as region A of screen `01-landing` in `.aah/architecture/applications_wireframes/01-landing.html`.\n- **env-check.cjs** \u2014 CommonJS module (runs via Node `--require` or imported at server/app entry) that reads `MONGODB_URI`, `JWT_SECRET`, and `GEMINI_API_KEY` from `process.env`; if any are missing it exits with code 1 and prints `ERR_CDR_78_EX_CONFIG: missing required env vars: [VAR_NAME, \u2026]. Copy .env.example \u2192 .env and fill in values.` It is invoked from the backend entrypoint before any Mongoose or route initialization.\n- **Seed script** (`scripts/seed.js` or equivalent runnable via `npm run seed`) \u2014 connects to MongoDB, creates at least one User document (hashed password, valid email) and at least one Recipe document (title, description, imageUrl, ingredients array, instructions array, tags array) so all other modules can run functional tests against real data without manual setup.\n\nDesign authority for the Navbar and all future screens: `.aah/architecture/design-spec.yaml` (ui_system, tokens, direction, per-screen regions) and `.aah/architecture/design/direction.html` (visual comp). No screen-level layouts are implemented in this module; those belong to MOD-001 through MOD-004.\n\n**Behavioral expectations**\n\n- Given the backend is running with a valid MONGODB_URI, when `GET http://localhost:3000/api/recipes` is called, then the response is HTTP 200 with a JSON array (may be empty) and `Content-Type: application/json`.\n- Given the backend is running, when `POST http://localhost:3000/api/users/signup` is called with a unique email and password, then the response is HTTP 201 with a JSON body containing a `token` field.\n- Given a valid JWT from signup or login, when `POST http://localhost:3000/api/users/login` is called with correct credentials, then the response is HTTP 200 with a `token` field.\n- Given a valid creator JWT, when `POST http://localhost:3000/api/recipes` is called with a complete recipe payload (title, description, imageUrl, ingredients, instructions, tags), then the response is HTTP 201 with the created recipe document including `_id`.\n- Given a valid creator JWT and an existing recipe `_id`, when `PUT http://localhost:3000/api/recipes/:id` is called, then the response is HTTP 200 with the updated recipe.\n- Given a valid creator JWT and an existing recipe `_id`, when `DELETE http://localhost:3000/api/recipes/:id` is called, then the response is HTTP 200 or 204.\n- Given the backend is running, when `POST http://localhost:3000/api/ai/stream` is called with `{ \"prompt\": \"Hello\" }` and a valid GEMINI_API_KEY configured, then the response streams with `Content-Type: text/event-stream` and emits at least one data chunk before closing.\n- Given the MongoDB connection string is valid, when the backend starts, then Mongoose connects without error and the `users` and `recipes` collections are accessible (User and Recipe models resolve without schema errors).\n- Given `MONGODB_URI`, `JWT_SECRET`, or `GEMINI_API_KEY` is absent from the environment, when env-check.cjs runs, then the process exits with code 1 and logs `ERR_CDR_78_EX_CONFIG` naming every missing variable and referencing `.env.example`.\n- Given all three required env vars are present, when env-check.cjs runs, then the process does not exit and prints no error.\n- Given the `client/` project is initialized, when `npm run dev` is executed inside `client/`, then Vite starts without TypeScript errors and the dev server is reachable at `http://localhost:5173`.\n- Given the React app is running at `http://localhost:5173`, when a browser visits `/`, `/recipes`, `/recipes/test-id`, `/login`, `/signup`, and `/ai-assistant`, then each route renders a stub page (no crashes, no blank screen, no uncaught exceptions in the console).\n- Given the React app is running, when a browser visits `/dashboard` without a JWT in localStorage, then the user is redirected to `/login`.\n- Given the React app is running, when a browser visits `/dashboard` with a valid JWT in localStorage, then the DashboardPage stub renders without redirect.\n- Given the Navbar shell renders, when the user is not authenticated (no JWT in localStorage), then the Navbar displays the Recipes, AI Assistant, and Login links and does not display Dashboard or Log Out.\n- Given the Navbar shell renders, when the user is authenticated (JWT present in localStorage), then the Navbar displays Dashboard and Log Out links and does not display Login.\n- Given the axios instance is imported, when a request is made while a JWT is present in AuthContext, then the request carries an `Authorization: Bearer <token>` header; when no JWT is present, no Authorization header is added.\n- Given the seed script (`npm run seed`) is executed against a running MongoDB instance, then at least one User and at least one Recipe document exist in the database afterward, and subsequent calls to `GET /api/recipes` return a non-empty array.\n- Given the `client/` TypeScript project, when the TypeScript compiler runs (`tsc --noEmit`), then it exits 0 with `strict: true` active and no `any` type usages in scaffold files.\n- Given the resolved design system (`frontend-design`, tokens from `.aah/architecture/design-spec.yaml`) and direction.rules (\"Modern Pantry\"), when the Navbar shell renders in any of its required states (`guest`, `creator`), then only token values from the spec's color/type/spacing/radius blocks are used in its CSS \u2014 no ad hoc hex values or bare pixel measurements outside the spacing scale appear in `Navbar.css`.\n- Given `.env.example` exists in the project root, when any developer clones the repository, then `MONGODB_URI`, `JWT_SECRET`, and `GEMINI_API_KEY` are listed as named entries with safe placeholder values (no real secrets), so `cp .env.example .env` gives them a complete template.",
+      "layers": [
+        "db",
+        "api",
+        "ui/ux"
+      ],
+      "required_env": [
+        "MONGODB_URI",
+        "JWT_SECRET",
+        "GEMINI_API_KEY"
+      ],
+      "lint_config": [
+        "client \u2014 default"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    },
+    {
+      "status": "pending",
+      "id": "F-MOD-001",
+      "title": "Guest Recipe Discovery \u2014 Landing, Browse & Detail",
+      "module_ref": "MOD-001",
+      "description": "MOD-001 implements the guest-accessible front door to Spoonful: a LandingPage at `/`, a RecipesPage at `/recipes`, and a RecipeDetailPage at `/recipes/:id`. All three routes are publicly accessible without authentication (per `discuss-prd.md` user stories 1, 4, 5 and `resolved-standards.yaml` rule EXTRACTED-004). The module connects the React 19 + TypeScript frontend scaffolded by MOD-000 to the existing Express backend via two endpoints: `GET /api/recipes` (with optional `search` and `tag` query params) and `GET /api/recipes/:id`. All API calls use the axios instance configured in MOD-000 (baseURL `localhost:3000`, JWT header interceptor).\n\n**Visual design:** The \"Modern Pantry\" direction governs all three screens. The authoritative token set, direction rules, and per-screen region contracts are defined in `.aah/architecture/design-spec.yaml` (screens `01-landing`, `02-browse-recipes`, `03-recipe-detail`). The visual source of truth for the direction comp is `.aah/architecture/design/direction.html`. Design guidance is provided via the `ref: frontend_guidance.md` slot resolved in `design-spec.yaml`. CSS is vanilla + Flexbox, one `.css` file per component, desktop-first with breakpoints at 1024px / 768px / 480px (per `discuss-prd.md` decision `responsive-breakpoints` and `css-approach`).\n\n**Screens and region contracts (consult wireframes and design-spec for exact layout):**\n\n- **01-landing** \u2014 wireframe at `.aah/architecture/applications_wireframes/01-landing.html`, screen contract in `design-spec.yaml` id `01-landing`: Region [A] persistent top-nav \u2014 white surface, pill-shaped Login CTA in sage green, logo with bold sans + em-colored accent, auth-aware links (Login shown for guest); Region [B] 50/50 split hero \u2014 static headline \"Find your next favorite recipe.\" with \"Explore Recipes\" (primary pill) and \"Login\" (ghost pill) CTAs on the left, 3 live recipe preview cards (title + tags, fetched from `GET /api/recipes?limit=3`) on the right \u2014 states: `loading-skeleton`, `populated`; Region [C] \"Recently Added\" 3-column discovery strip (same `GET /api/recipes?limit=3` call) with \"View all recipes \u2192\" link \u2014 states: `loading`, `populated`, `empty`; Region [D] dark footer bar with logo and nav links \u2014 state: `default`.\n\n- **02-browse-recipes** \u2014 wireframe at `.aah/architecture/applications_wireframes/02-browse-recipes.html`, screen contract in `design-spec.yaml` id `02-browse-recipes`: Region [A] top-nav with \"Recipes\" link active; Region [B] pill search input + tag-chip filter row \u2014 real-time filter against `GET /api/recipes?search=<term>&tag=<tag>` \u2014 states: `empty`, `typing`, `results-loading`, `filtered`; Region [C] 3-column RecipeCard grid (image, title, description, tag chips) \u2014 states: `loading-skeleton`, `populated`, `empty-no-results`; Region [D] dark footer.\n\n- **03-recipe-detail** \u2014 wireframe at `.aah/architecture/applications_wireframes/03-recipe-detail.html`, screen contract in `design-spec.yaml` id `03-recipe-detail`: Region [A] top-nav; Region [B] full-width 16:7 aspect-ratio hero image \u2014 states: `loading`, `loaded`, `error-fallback`; Region [C] back breadcrumb (\"\u2190 Back to Recipes\"), large title, tag chips, creator attribution \u2014 from `GET /api/recipes/:id` \u2014 states: `loading`, `populated`, `not-found-404`; Region [D] 2-column content area \u2014 ingredients list (name + quantity per row) left, numbered instruction steps right \u2014 states: `loading`, `populated`, `empty-list`.\n\n**Components:** `LandingPage`, `RecipesPage`, `RecipeDetailPage`, `RecipeCard` (title, image, description, tags), `SearchBar` (real-time filter by title/tag/ingredient).\n\n**Behavioral expectations:**\n\n- Given the app is running and a guest visits `/`, when the LandingPage mounts, then the top-nav [A] renders with the pill Login CTA and the Spoonful logo; the hero [B] right panel fetches `GET /api/recipes?limit=3`, shows a loading skeleton during the request, then renders up to 3 recipe preview cards (title + tags) once resolved; the \"Explore Recipes\" and \"Login\" CTA buttons are visible in the hero left panel.\n- Given the LandingPage has mounted, when the \"Recently Added\" section [C] resolves its `GET /api/recipes?limit=3` call, then 3 RecipeCard components render in a 3-column grid; when the API returns an empty array, then an empty state is displayed in region [C].\n- Given a guest clicks \"Explore Recipes\" on the LandingPage, when the click event fires, then the router navigates to `/recipes`.\n- Given a guest visits `/recipes`, when the RecipesPage mounts, then it calls `GET /api/recipes` and renders a 3-column grid of RecipeCard components with a loading skeleton while in-flight; when the API returns an empty array, then an empty-state message \"No recipes match your search\" is displayed in region [C].\n- Given a guest is on `/recipes`, when they type into the SearchBar input, then the component calls `GET /api/recipes?search=<term>` (on input or debounced) and the card grid updates to only show matching recipes; when the input is cleared, then the full recipe list is shown.\n- Given a guest is on `/recipes`, when they click a tag-chip filter pill, then the component calls `GET /api/recipes?tag=<tag>` and only cards matching that tag are displayed; when the \"All\" chip is selected, then the full recipe list is shown.\n- Given a guest is on `/recipes`, when they click a RecipeCard, then the router navigates to `/recipes/:id` for that recipe's ID.\n- Given a guest visits `/recipes/:id` with a valid recipe ID, when the RecipeDetailPage mounts and `GET /api/recipes/:id` resolves, then: region [B] renders the recipe hero image at a 16:7 aspect ratio with a loading state while in-flight and a fallback placeholder if the image URL fails to load; region [C] renders the recipe title, tag chips, and creator attribution; region [D] renders the ingredients list (each row: ingredient name + quantity) in the left column and numbered instruction steps in the right column.\n- Given a guest visits `/recipes/:id` with an invalid or non-existent ID, when `GET /api/recipes/:id` returns a 404, then a not-found error state is displayed in regions [C] and [D] in place of the recipe content.\n- Given the RecipeDetailPage is displayed, when the user clicks the \"\u2190 Back to Recipes\" breadcrumb in region [C], then the router navigates back to `/recipes`.\n- Given the app is rendered at a 1024px viewport width, when any of the three pages is displayed, then the layout uses its full desktop configuration: 3-column RecipeCard grids, the 50/50 hero split on the landing page, and the 2-column ingredient/instructions layout on the detail page.\n- Given the app is rendered at a 768px viewport width, when any of the three pages is displayed, then card grids reflow to 2 columns or stack, the landing hero stacks vertically, and all interactive elements remain reachable and visible without overflow.\n- Given the app is rendered at a 480px viewport width, when any of the three pages is displayed, then card grids collapse to single-column, the Navbar adapts, and all text and buttons remain legible without horizontal scrolling.\n- Given the \"Modern Pantry\" design system defined in `.aah/architecture/design-spec.yaml` and direction rules in `.aah/architecture/design/direction.html`, when any required state for screens `01-landing` (loading-skeleton, populated, empty), `02-browse-recipes` (empty, typing, results-loading, filtered, loading-skeleton, populated, empty-no-results), and `03-recipe-detail` (loading, loaded, error-fallback, populated, not-found-404, empty-list) renders, then all colors, type weights, letter-spacing, spacing, and border-radius values come exclusively from the resolved token set in `design-spec.yaml` (palette: `#3A7D5E`, `#F2C94C`, `#1A1A1A`, `#F5F5F2`, `#FFFFFF`, `#6B6B6B`, `#E0E0DC`, `rgba(58,125,94,0.12)`; type: 800-weight headings at \u22120.03em, uppercase labels at 0.08em/700-weight; spacing: 8/16/24/40/64/80px; radius: pill 100px, card 8px) \u2014 no ad hoc hex values or arbitrary pixel values outside the token set are present in any component stylesheet.",
+      "layers": [
+        "api",
+        "ui/ux"
+      ],
+      "dependencies": [
+        "F-MOD-000"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    },
+    {
+      "status": "pending",
+      "id": "F-MOD-002",
+      "title": "Creator Auth Flow and Protected Dashboard",
+      "module_ref": "MOD-002",
+      "description": "MOD-002 delivers the full authentication loop for recipe creators and the protected dashboard screen that lists their own recipes. It adds three new React pages \u2014 `LoginPage` (`/login`), `SignupPage` (`/signup`), and `DashboardPage` (`/dashboard`) \u2014 to the frontend scaffold already established by MOD-000, wires them into the existing Express 5 JWT auth endpoints on the backend, and gates `/dashboard` behind the `RequireAuth` wrapper from the scaffold.\n\n**Stack and layout.** The frontend is React 19 + TypeScript + Vite (from MOD-000). Auth pages follow the design contract in `.aah/architecture/design-spec.yaml` (ui_system: `frontend-design`, direction: \"Modern Pantry\", comp at `.aah/architecture/design/direction.html`). Both `LoginPage` and `SignupPage` use the single-column centered-card layout dictated by the direction rules. `DashboardPage` uses a two-panel dashboard layout \u2014 header bar with welcome greeting and \"New Recipe\" CTA, followed by a 3-column recipe card grid. All CSS is vanilla + Flexbox, one `.css` file per component, desktop-first with breakpoints at 1024 / 768 / 480 px. Wireframes are the authoritative visual spec for all three screens; read them before implementing:\n\n- **04-login** \u2014 `.aah/architecture/applications_wireframes/04-login.html`\n- **05-signup** \u2014 `.aah/architecture/applications_wireframes/05-signup.html`\n- **06-dashboard** \u2014 `.aah/architecture/applications_wireframes/06-dashboard.html`\n\nPer-screen design contracts (regions, states, data) are declared in `.aah/architecture/design-spec.yaml` under screen ids `04-login`, `05-signup`, and `06-dashboard`. The `06-dashboard` screen is shared with MOD-003; this module owns regions A (nav), B (dashboard header + New Recipe button), and C (creator recipe grid). Region D (create/edit/delete modal) is built by MOD-003.\n\n**API surface.** No backend changes are needed \u2014 the Express routes exist. The frontend calls them through the axios instance (baseURL `http://localhost:3000`) scaffolded in MOD-000:\n\n- `POST /api/users/login` \u2014 submits `{ email, password }`, receives `{ token, user }` on 200.\n- `POST /api/users/signup` \u2014 submits `{ email, password }`, receives `{ token, user }` on 201.\n- `GET /api/recipes` \u2014 called from `DashboardPage` with the JWT Authorization header; the backend filters by the authenticated owner.\n\n**JWT lifecycle.** On successful login or signup the JWT is written to `localStorage` and the `AuthContext` (from MOD-000 scaffold) is updated with `{ token, user }`. The navbar conditionally shows \"Dashboard\" and \"Log Out\" for authenticated users and \"Login\" for guests based on `AuthContext` state. Log Out clears `localStorage`, resets `AuthContext`, and redirects to `/`.\n\n**Ground truth references:** module-map entry `id: MOD-002` in `.aah/architecture/module-map.yaml`; user stories 2 and 3 in `.aah/discuss/discuss-prd.md`; applicable standards from `.aah/plan/resolved-standards.yaml` (TS-SEC-002, RX-SEC-001, RX-SEC-002, TS-TYPE-001, TS-TYPE-002, RX-ARCH-001, RX-ARCH-002, RX-A11Y-001, RX-A11Y-002).\n\n**Behavioral expectations:**\n\n- Given the user navigates to `/login`, when the page renders in the idle state, then a centered card is shown with an \"Email\" field, a \"Password\" field, a full-width pill \"Log In\" button, and a \"Sign up\" text link to `/signup`; the navbar shows no \"Login\" button and no \"Dashboard\" link, matching region A of `04-login.html`.\n- Given the user fills valid credentials on `/login` and submits, when `POST /api/users/login` returns 200 with `{ token, user }`, then the JWT is stored in `localStorage`, `AuthContext` is updated with the token and user, and the router navigates to `/dashboard`.\n- Given the login form is in-flight, when the request is pending, then the \"Log In\" button is disabled and a loading indicator is visible; the form cannot be double-submitted.\n- Given the user submits incorrect credentials on `/login`, when `POST /api/users/login` returns a 4xx response, then the inline error \"Invalid email or password\" is displayed within region B without a page reload; the form returns to idle state on correction.\n- Given the user navigates to `/signup`, when the page renders in the idle state, then a centered card is shown with \"Email\", \"Password\", and \"Confirm Password\" fields, a full-width pill \"Create Account\" button, and a \"Log in\" text link to `/login`, matching region B of `05-signup.html`.\n- Given the user submits `/signup` with mismatched password fields, when client-side validation fires before any network call, then the error \"Passwords do not match\" is displayed inline and no `POST /api/users/signup` request is made.\n- Given the user submits `/signup` with a valid new email and matching password, when `POST /api/users/signup` returns 201 with `{ token, user }`, then the JWT is stored in `localStorage`, `AuthContext` is updated, and the router navigates to `/dashboard`.\n- Given the user submits `/signup` with an email already in the database, when `POST /api/users/signup` returns a 409 or 4xx response, then the inline error \"Email already in use\" is displayed and the form remains on `/signup`.\n- Given an unauthenticated user navigates directly to `/dashboard`, when `RequireAuth` checks `AuthContext` and finds no JWT, then the user is redirected to `/login` with no dashboard content rendered.\n- Given an authenticated creator navigates to `/dashboard`, when `RequireAuth` finds a valid JWT in `AuthContext`, then `GET /api/recipes` is called with the `Authorization: Bearer <token>` header and the response is filtered to the creator's own recipes.\n- Given `GET /api/recipes` returns one or more recipes on `/dashboard`, when the data loads, then region C renders a 3-column grid of recipe cards each showing title, image placeholder, description, and \"Edit\" / \"Delete\" action buttons, plus a recipe count label, matching region C of `06-dashboard.html`.\n- Given `GET /api/recipes` returns an empty array for the creator on `/dashboard`, when the empty state renders, then region C shows \"You haven't added any recipes yet. Click 'New Recipe' to get started.\" with no recipe cards.\n- Given `/dashboard` is loading recipes, when the fetch is in-flight, then a loading state (skeleton or spinner) is shown in region C and no partial or stale data is rendered.\n- Given the authenticated creator's dashboard navbar (region A), when the creator is logged in, then \"Dashboard\" is the active nav link and a \"Log Out\" control is visible; \"Login\" nav item is hidden.\n- Given the creator clicks \"Log Out\" in the navbar, when the action fires, then the JWT is removed from `localStorage`, `AuthContext` is reset to unauthenticated, the navbar reverts to guest state, and the router navigates to `/`.\n- Given the \"Modern Pantry\" design system resolved from `.aah/architecture/design-spec.yaml` and the direction rules in `.aah/architecture/design/direction.html`, when each required state for screens `04-login` (idle, loading, error-invalid-credentials, success-redirect), `05-signup` (idle, loading, error-duplicate-email, error-password-mismatch, success-redirect), and `06-dashboard` (loading, populated, empty-no-recipes) renders, then only tokens from the resolved palette (`#3A7D5E`, `#F2C94C`, `#1A1A1A`, `#F5F5F2`, `#FFFFFF`, `#6B6B6B`, `#E0E0DC`), type stack (Segoe UI, display-weight 800 / label-weight 700), spacing scale (8 / 16 / 24 / 40 / 64 / 80 px), and radius scale (pill 100px, card 8px, modal 12px) are applied \u2014 no ad hoc hex values or pixel values outside these tokens.",
+      "layers": [
+        "api",
+        "ui/ux"
+      ],
+      "dependencies": [
+        "F-MOD-000"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    },
+    {
+      "status": "pending",
+      "id": "F-MOD-003",
+      "title": "Recipe CRUD \u2014 Create, Edit & Delete",
+      "module_ref": "MOD-003",
+      "description": "MOD-003 implements creator-only recipe management from the authenticated dashboard. It adds three API-backed mutations \u2014 create (POST /api/recipes), edit (PUT /api/recipes/:id), and delete (DELETE /api/recipes/:id) \u2014 and the UI flows that trigger them, all updating the dashboard grid without a full page reload. The module extends the dashboard screen established by MOD-002 and relies on the axios instance, AuthContext, and RequireAuth scaffold from MOD-000.\n\n**Stack:** React 19 + TypeScript + Vite (frontend), Express 5 / MongoDB backend (pre-existing). Vanilla CSS + Flexbox, one `.css` file per component, desktop-first responsive at 1024 / 768 / 480 px breakpoints. All mutating API calls go through the shared axios instance, which attaches the JWT Authorization header via its interceptor.\n\n**Architecture references (read these directly):**\n- `.aah/architecture/module-map.yaml` \u2014 MOD-003 entry: description, demo_criteria, layers, depends_on\n- `.aah/architecture/design-spec.yaml` \u2014 `ui_system: frontend-design`, `token_source: generated`, `component_model: composition`, `direction.comp: design/direction.html`, `direction.rules`; screen `06-dashboard` regions C and D (the two regions owned by MOD-003); `intake.feature_appetite: recommend-standouts`\n- `.aah/architecture/applications_wireframes/06-dashboard.html` \u2014 region [C\u2605] creator recipe grid with S3 optimistic UI behavior (card appears on create, fades on delete before server confirms); region [D] create/edit modal overlay with title, description, imageUrl, dynamic ingredient rows (name + quantity), dynamic instruction step rows, tags field, Save/Cancel pill buttons, and the confirm-delete dialog; confirm-dialog with recipe-title copy and Cancel / Delete pill buttons\n- `design/direction.html` \u2014 \"Modern Pantry\" direction: sage-green `#3A7D5E` primary, off-white `#F5F5F2` body background, pure-white surface, pill-shaped buttons (radius 100px), 800-weight bold headings at \u22120.03em tracking, uppercase wide-tracking section labels, sage-tint `rgba(58,125,94,.12)` pill tags\n\n**Components to implement:**\n\n1. **RecipeForm** \u2014 centered overlay modal (`.modal`, border-radius 12px per token `radius.modal`) containing labeled fields: Title (text input), Description (textarea), Image URL (text input), Ingredients (dynamic list \u2014 each row has Name + Quantity inputs and a remove button; \"+ Add ingredient\" appends a row), Instructions (dynamic list \u2014 each row is a step input with a remove button; \"+ Add step\" appends a row), Tags (comma-separated text input). Save and Cancel pill buttons (radius 100px). Form fields carry uppercase 700-weight labels at 0.07\u20130.08em tracking per the direction. In **create** mode the modal title is \"New Recipe\" and all fields are empty. In **edit** mode the modal title is \"Edit Recipe\" and all fields are prefilled from the selected recipe's current data. The Save button disables and shows a loading indicator while the request is in flight. On server success the modal closes and the dashboard grid updates in-place. On server error an inline error message renders inside the modal without closing it.\n\n2. **Create flow** \u2014 the \"New Recipe\" pill button in the dashboard header [B] opens RecipeForm in create mode. On submit, an optimistic card (S3, styled with `.card-new-badge` \"Just added\" badge) is inserted at the head of the recipe grid [C\u2605] immediately, before the POST /api/recipes response arrives. On server success the optimistic card is replaced with the confirmed server-returned card. On server error the optimistic card is removed and an inline error message is shown inside the still-open modal.\n\n3. **Edit flow** \u2014 each recipe card's \"Edit\" button opens RecipeForm in edit mode prefilled with that card's data. On submit, PUT /api/recipes/:id is called. On success the card in the grid updates in-place (title, description, image, tags) without a page reload. On error an inline error renders inside the modal and the card is unchanged.\n\n4. **Delete flow** \u2014 each recipe card's \"Delete\" button opens a confirmation dialog (`.confirm-dialog`, border-radius 8px per token `radius.card`) showing the recipe title and the message \"This will permanently remove '{title}'. This action cannot be undone.\" with Cancel and Delete pill buttons. On confirm, the card immediately transitions to `.card-deleting` (S3 optimistic fade) and DELETE /api/recipes/:id is called. On server success the card is removed from the DOM. On server error the card's opacity is restored and an error message is shown.\n\n**Behavioral expectations:**\n\n- Given a logged-in creator is on /dashboard, when they click \"New Recipe\", then the RecipeForm modal opens in create mode (modal title \"New Recipe\") with all fields empty and the Save button enabled.\n- Given RecipeForm is open in create mode with all required fields filled, when the creator clicks Save, then the Save button disables (loading state), an optimistic card with a \"Just added\" badge appears immediately in the [C\u2605] grid, and POST /api/recipes is called with the form payload.\n- Given POST /api/recipes succeeds, when the response arrives, then the optimistic card is replaced with the server-confirmed card and the modal closes.\n- Given POST /api/recipes returns an error, when the response arrives, then the optimistic card is removed from the grid, the modal remains open, the Save button re-enables, and an inline error message is displayed inside the modal.\n- Given RecipeForm is open in create mode, when the creator clicks Cancel, then the modal closes with no API call made and the grid is unchanged.\n- Given a logged-in creator is on /dashboard with at least one recipe, when they click \"Edit\" on a card, then the RecipeForm modal opens in edit mode (modal title \"Edit Recipe\") with all fields prefilled from that recipe's current data.\n- Given RecipeForm is open in edit mode with modified data, when the creator clicks Save, then the Save button disables (loading state) and PUT /api/recipes/:id is called with the updated payload.\n- Given PUT /api/recipes/:id succeeds, when the response arrives, then the card in the [C\u2605] grid updates in-place with the new values and the modal closes.\n- Given PUT /api/recipes/:id returns an error, when the response arrives, then the modal remains open, the Save button re-enables, an inline error message is displayed inside the modal, and the card in the grid is unchanged.\n- Given a logged-in creator is on /dashboard with at least one recipe, when they click \"Delete\" on a card, then the confirmation dialog opens showing the recipe's title and \"This action cannot be undone.\" copy, with Cancel and Delete buttons.\n- Given the confirmation dialog is open, when the creator clicks Delete, then the card immediately transitions to the `.card-deleting` faded state (S3 optimistic) and DELETE /api/recipes/:id is called.\n- Given DELETE /api/recipes/:id succeeds, when the response arrives, then the faded card is removed from the DOM and the grid count decrements.\n- Given DELETE /api/recipes/:id returns an error, when the response arrives, then the faded card is restored to its normal appearance and an error message is shown.\n- Given the confirmation dialog is open, when the creator clicks Cancel, then the dialog closes with no API call made and the card is unchanged.\n- Given the dashboard is mounted and fetching the creator's recipes, when the GET /api/recipes (owner-filtered) request is in flight, then region [C\u2605] shows a loading state (skeleton or spinner); when populated, then a 3-column card grid renders with each recipe's image, title, description, and Edit/Delete action buttons; when the creator has no recipes, then the empty state \"You haven't added any recipes yet. Click 'New Recipe' to get started.\" is displayed.\n- Given the generated token system defined in `.aah/architecture/design-spec.yaml` and the `direction.rules` (pill buttons, bold sans headings, sage-green primary, off-white body background), when any required state from the screen spec's regions renders (region C: loading, populated, empty-no-recipes; region D: closed, open-create, open-edit-prefilled, saving, save-error, save-success), then only tokens from the system's resolved palette, type scale, spacing, and radius are applied \u2014 no ad hoc hex values or px values outside the token set.",
+      "layers": [
+        "api",
+        "ui/ux"
+      ],
+      "dependencies": [
+        "F-MOD-002"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    },
+    {
+      "status": "pending",
+      "id": "F-MOD-004",
+      "title": "AI Assistant \u2014 Gemini Streaming Text Analyzer",
+      "module_ref": "MOD-004",
+      "description": "This module delivers the `/ai-assistant` route \u2014 a guest-accessible AI text analysis page \u2014 and the backend SSE proxy endpoint that powers it. The stack is React 19 + TypeScript + Vite (frontend) and Express 5 + Node.js (backend), matching the project-wide choices established in MOD-000.\n\n**API layer \u2014 POST /api/ai/stream**\n\nThe Express route accepts `{ \"prompt\": \"...\" }` in the request body, prepends no additional system prompt (the frontend constructs the prefixed prompt), and pipes the Gemini `gemini-2.0-flash` SSE response directly back to the client as a streaming HTTP response. `GEMINI_API_KEY` is read exclusively server-side; it must never appear in any client-side bundle or response body (resolved-standards.yaml rule EXTRACTED-005, TS-SEC-001). The frontend calls `POST /api/ai/stream` through the project-wide axios instance at `localhost:3000` but consumes the SSE response via the Fetch API with `getReader` \u2014 not axios \u2014 since axios buffers the full response.\n\n**UI/UX layer \u2014 AIAssistantPage (`/ai-assistant`)**\n\nThe route requires no authentication and is linked from the persistent Navbar (nav item \"AI Assistant\", `access: all`, per `.aah/architecture/design-spec.yaml` navigation contract). The page layout, visual states, and composition are specified in `.aah/architecture/applications_wireframes/07-ai-assistant.html` and must match that wireframe region by region.\n\nImplement the \"Modern Pantry\" direction defined in `.aah/architecture/design-spec.yaml` (`direction.label: \"Modern Pantry\"`, `direction.comp: design/direction.html`) and the full token set it establishes. The design system guidance is a reference doc: `.aah/architecture/design-spec.yaml` \u2192 `guidance.ref: frontend_guidance.md`. Use only the resolved palette, type, spacing, and radius tokens from `design-spec.yaml` \u2014 no ad hoc hex values or pixel overrides. Per `install: none`, no additional design-system package installation is required.\n\n**Regions (per `.aah/architecture/applications_wireframes/07-ai-assistant.html`)**\n\n- **[A] Navbar** \u2014 persistent top-nav (`primary-nav`), \"AI Assistant\" link marked active; shows guest or creator state depending on JWT presence in localStorage.\n- **[B] Page Header** \u2014 static title (\"AI Assistant\") and one-line subtitle (\"Paste any text and choose an analysis \u2014 Summarize, Key Points, or Tone Classification.\").\n- **[C\u2605] Input + Action Buttons** \u2014 dominant interactive region: a resizable `<textarea>` for user text input with a character count display, and three action buttons (\"Summarize\" / \"Key Points\" / \"Classify Tone\") arranged in a 3-column grid. Each button constructs a mode-specific prefixed prompt and fires `POST /api/ai/stream`. States: `idle`, `empty-validation-error`, `loading-s2-streaming-indicator`, `streaming`, `complete`, `error`.\n- **[D] Streaming Output Pane** \u2014 a white output box that renders tokens progressively as they arrive from the SSE `ReadableStream` (consumed via `fetch` + `getReader` + `read` loop, not EventSource). Displays animated three-dot loading indicator (S2 pattern, per wireframe) while waiting for the first token. A blinking inline cursor tracks the end of in-progress text. States: `idle-placeholder`, `s2-loading-dots`, `streaming-with-cursor`, `complete`, `error`.\n- **[E] Session History** \u2014 a React state list (not persisted, resets on reload) holding at most 3 prompt/response pairs. New completions are prepended; when the list reaches 3, the oldest pair is evicted (FIFO). Each history item renders the action label, truncated response text, and relative time metadata. States: `empty`, `has-1`, `has-2`, `has-3`.\n\nThe AIAssistantPage must have its own `.css` file (vanilla CSS + Flexbox, desktop-first, with breakpoints at 1024 / 768 / 480 px per project convention). Business logic (SSE consumption, history management) belongs in a custom hook or service module, not inline in the component (resolved-standards.yaml rule RX-ARCH-002).\n\nGrounding user story: \"As any user, I want to navigate to the AI Assistant page, paste some text, and choose an analysis (Summarize / Key Points / Tone), so I can get instant AI-powered feedback streamed progressively.\" (discuss-prd.md User Story 9).\n\n**Behavioral expectations**\n\n- Given `GEMINI_API_KEY` is absent from the environment, when the backend starts, then `env-check.cjs` reports `ERR_CDR_78_EX_CONFIG` naming `GEMINI_API_KEY` and the process exits before any module reads configuration; the error message points the user at `cp .env.example .env`. (MOD-000 registers this variable in the checker; this module's change must confirm the variable appears in `.env.example` with a safe placeholder value.)\n- Given `GEMINI_API_KEY` is present, when `POST /api/ai/stream` receives `{ \"prompt\": \"Summarize: <text>\" }`, then the backend proxies the request to Gemini `gemini-2.0-flash` and streams SSE token chunks back in the HTTP response; the key value is never included in the response body or any client-visible artifact.\n- Given any user (guest or authenticated), when they navigate to `/ai-assistant`, then the page renders without an auth redirect and the Navbar shows \"AI Assistant\" as the active link.\n- Given the `/ai-assistant` page renders with no prior interaction, when region [B] displays, then the page title reads \"AI Assistant\" and the subtitle reads \"Paste any text and choose an analysis \u2014 Summarize, Key Points, or Tone Classification.\"\n- Given the textarea is empty, when any of the three action buttons is clicked, then a client-side validation error message (\"Please enter some text before analyzing\") appears in region [C\u2605] and no HTTP request to `POST /api/ai/stream` is made.\n- Given text is in the textarea, when \"Summarize\" is clicked, then a prompt prefixed with a summarize instruction is POSTed to `/api/ai/stream`, the three action buttons enter a loading/disabled state, and region [D] transitions to `s2-loading-dots` showing the animated three-dot indicator and \"Analyzing\u2026\" label.\n- Given text is in the textarea, when \"Key Points\" is clicked, then a prompt prefixed with a key-points instruction is POSTed to `/api/ai/stream` and the same loading sequence begins.\n- Given text is in the textarea, when \"Classify Tone\" is clicked, then a prompt prefixed with a tone-classification instruction is POSTed to `/api/ai/stream` and the same loading sequence begins.\n- Given the SSE `ReadableStream` yields its first token, when the `read` loop receives the chunk, then region [D] replaces the loading-dots indicator with the partial token text and a blinking inline cursor appended at the end.\n- Given subsequent tokens arrive from the stream, when each chunk is read, then the text in region [D] grows incrementally token-by-token with the cursor tracking the new end position.\n- Given the stream closes (no further chunks), when the `read` loop detects `done === true`, then the blinking cursor is removed and region [D] shows the final complete response text; the action buttons return to the interactive state.\n- Given the SSE fetch or Gemini proxy returns an error, when region [D] renders the error state, then it displays \"Something went wrong. The AI service could not process your request. Please try again.\" and the action buttons return to the interactive state.\n- Given a streaming request completes successfully, when the response is finished, then the {action label, response text} pair is prepended to the React-state session history list in region [E].\n- Given the session history list already contains 3 pairs, when a new request completes, then the oldest pair is removed (FIFO eviction) so the list remains at exactly 3 entries.\n- Given 4 or more requests are submitted in sequence, when region [E] renders, then it shows at most 3 history items and never more; the history is not written to any backend endpoint or browser storage.\n- Given the \"Modern Pantry\" design system tokens in `.aah/architecture/design-spec.yaml` and `direction.rules`, when each required state (`idle`, `empty-validation-error`, `loading-s2-streaming-indicator`, `streaming`, `complete`, `error`) of screen `07-ai-assistant` renders, then all colors, font weights, letter-spacing, border-radius, and spacing values are drawn exclusively from the resolved token set (primary `#3A7D5E`, bg `#F5F5F2`, surface `#FFFFFF`, muted `#6B6B6B`, border `#E0E0DC`, accent `#F2C94C`, pill radius `100px`, card radius `8px`, display weight 800 at `\u22120.03em`, label transform uppercase at `0.08em`) \u2014 no ad hoc hex values or pixel overrides outside those tokens appear in the component stylesheet.",
+      "layers": [
+        "api",
+        "ui/ux"
+      ],
+      "dependencies": [
+        "F-MOD-000"
+      ],
+      "required_env": [
+        "GEMINI_API_KEY"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    },
+    {
+      "status": "pending",
+      "id": "F-MOD-005",
+      "title": "Component Tests & Responsive CSS Polish",
+      "module_ref": "MOD-005",
+      "description": "This module delivers two parallel workstreams for the Spoonful React SPA (React 19 + TypeScript + Vite): (1) a Vitest + React Testing Library test suite covering five UI components, and (2) a final responsive CSS audit and repair pass across all seven application screens, bringing every layout into conformance with the desktop-first breakpoint scheme at 1024 px, 768 px, and 480 px.\n\n**Testing workstream.** Five test files are written in `client/src/` alongside (or near) the components they cover. Each file uses `@testing-library/react` `render()` against the real component tree rendered in jsdom \u2014 no mock frameworks, no stubs beyond plain prop fixtures. The components under test, their locations, and the behaviors each suite must assert are defined in the `testing` layer of `.aah/architecture/module-map.yaml` (MOD-005 entry). Tests are executed via `npm run test` in the `client/` directory (Vitest runner). The test framework decision (`vitest + React Testing Library`) and the five target components are recorded in `.aah/discuss/discuss-prd.md` under `testing-framework` and `test-targets`.\n\n**Responsive polish workstream.** All seven wireframe screens defined in `.aah/architecture/design-spec.yaml` (screen ids `01-landing` through `07-ai-assistant`, files at `.aah/architecture/applications_wireframes/`) are audited at three viewport widths (1024 px / 768 px / 480 px). Layout defects \u2014 overflow, hidden interactive elements, broken grid stacking, illegible nav \u2014 are fixed in the per-component CSS files (one `.css` file per component, as established in MOD-001 through MOD-004). No new components or routes are introduced; this module only repairs existing CSS.\n\nThe design token system is defined in `.aah/architecture/design-spec.yaml` (`tokens` block, `direction.rules`). Every CSS repair must draw exclusively from those tokens: `color.primary` `#3A7D5E`, `color.bg` `#F5F5F2`, `color.surface` `#FFFFFF`, `color.muted` `#6B6B6B`, `color.border` `#E0E0DC`, `color.accent` `#F2C94C`, `color.dark` `#1A1A1A`, `color.primary_tint` `rgba(58,125,94,0.12)`; `radius.pill` `100px`, `radius.card` `8px`, `radius.modal` `12px`, `radius.tag_small` `4px`; spacing values `8px / 16px / 24px / 40px / 64px / 80px`; typeface `'Segoe UI', system-ui, -apple-system, sans-serif`; display weight 800, tracking `\u22120.03em`; label transform `uppercase`, tracking `0.08em`, weight 700.\n\n**Behavioral expectations**\n\n- Given the five test files (`Navbar.test.tsx`, `RecipeCard.test.tsx`, `RecipeForm.test.tsx`, `SearchBar.test.tsx`, `LoginForm.test.tsx`) are present in the `client/` package, when `npm run test` is run from the `client/` directory, then all five suites exit with status 0 and zero failing assertions.\n\n- Given `Navbar.test.tsx` renders the Navbar component with props representing guest state and creator state, when the rendered output is queried, then all navigation link labels defined in `.aah/architecture/design-spec.yaml` `navigation.nav_items` (`Recipes`, `AI Assistant`, `Login` for guest; `Recipes`, `AI Assistant`, `Dashboard`, `Log Out` for creator) are present in the DOM, and the active-state class or attribute is applied to the link matching the current route prop.\n\n- Given `RecipeCard.test.tsx` renders the RecipeCard component with a fixture recipe object (title, imageUrl, description, tags array), when the rendered output is queried, then the recipe title text, an `<img>` element with the correct `src` and non-empty `alt` attribute, and at least one tag chip are present in the DOM.\n\n- Given `RecipeForm.test.tsx` renders the RecipeForm component (used for create and edit flows), when the rendered output is queried, then input fields for title, image URL, description, and tags are present, and at least one ingredient row and one instruction row are rendered; when a submit event is fired on the form, then the `onSubmit` callback prop is invoked with the current field values.\n\n- Given `SearchBar.test.tsx` renders the SearchBar component with an `onChange` prop callback and an initial empty value, when the rendered text input is present in the DOM and a change event is simulated with a search string, then the `onChange` callback is invoked with that string as its argument.\n\n- Given `LoginForm.test.tsx` renders the LoginForm component with an `onSubmit` prop callback, when the email and password fields are populated and the submit button is activated, then the `onSubmit` callback is invoked with the entered email and password values; when either field is empty and submit is triggered, then the callback is not invoked (client-side required-field constraint).\n\n- Given the `01-landing` screen (`.aah/architecture/applications_wireframes/01-landing.html`) defines a 50/50 hero split (region B) and a 3-column discovery strip (region C), when the viewport width is 768 px, then the hero panels stack to a single column without horizontal overflow; when the viewport is 480 px, then all CTA buttons and text remain fully visible and tappable (minimum 44 px touch target height).\n\n- Given the `02-browse-recipes` screen defines a 3-column recipe card grid (region C) and a pill search input with tag-chip filter row (region B), when the viewport is 768 px, then the grid reflows to 2 columns; when the viewport is 480 px, then the grid is 1 column and the search input spans full width with no clipping.\n\n- Given the `03-recipe-detail` screen defines a 2-column ingredients/instructions layout (region D) and a full-width hero image (region B), when the viewport is 768 px or 480 px, then the 2-column content collapses to single column and the hero image maintains its aspect ratio without overflow.\n\n- Given the `04-login` and `05-signup` screens each define a centered card form (region B), when rendered at 480 px, then the card does not exceed the viewport width, all form fields are full-width within the card, and the pill submit button is fully visible.\n\n- Given the `06-dashboard` screen defines a 3-column creator card grid (region C) and a centered modal overlay (region D), when the viewport is 768 px, then the grid reflows to 2 columns; when the viewport is 480 px, then the grid is 1 column and the modal width is constrained to the viewport with internal padding preserved.\n\n- Given the `07-ai-assistant` screen defines a 3-column action button row (region C) and a streaming output pane (region D), when the viewport is 480 px, then the three action buttons stack vertically or wrap without clipping, the textarea spans full width, and the output pane scrolls vertically within the viewport.\n\n- Given the Navbar (region A across all screens) uses the pill-CTA style defined in `direction.rules` in `.aah/architecture/design-spec.yaml`, when the viewport is 480 px, then navigation links remain legible (no overflow, no hidden items behind layout edges) and the Navbar does not obscure page content.\n\n- Given the design system defined in `.aah/architecture/design-spec.yaml` (`tokens` block, `direction.rules`, `token_source: generated`), when any required state from any screen's `states` fields (e.g., `loading-skeleton`, `populated`, `empty`, `error-fallback`, `idle`, `streaming`, `creator-authenticated`) renders after the responsive fixes are applied, then only tokens from the system's resolved palette, type scale, spacing scale, and radius scale are used \u2014 no ad hoc hex values, px literals, or font stacks outside those defined in the `tokens` block.",
+      "layers": [
+        "testing",
+        "ui/ux"
+      ],
+      "dependencies": [
+        "F-MOD-001",
+        "F-MOD-002",
+        "F-MOD-003",
+        "F-MOD-004"
+      ],
+      "applicable_standards": [
+        {
+          "total_rules": 21,
+          "critical": [
+            "TS-SEC-001",
+            "TS-SEC-002",
+            "RX-SEC-001",
+            "RX-SEC-002"
+          ],
+          "high": [
+            "EXTRACTED-002",
+            "EXTRACTED-003",
+            "EXTRACTED-004",
+            "EXTRACTED-005",
+            "EXTRACTED-006",
+            "TS-TYPE-001",
+            "TS-TYPE-002",
+            "TS-TEST-001",
+            "TS-ERR-001",
+            "RX-ARCH-001",
+            "RX-ARCH-002",
+            "RX-A11Y-001"
+          ],
+          "medium": [
+            "EXTRACTED-001",
+            "TS-TYPE-003",
+            "RX-A11Y-002",
+            "RX-PERF-001"
+          ],
+          "low": [
+            "TS-CONV-001"
+          ]
+        }
+      ],
+      "passes": false
+    }
+  ]
+}
