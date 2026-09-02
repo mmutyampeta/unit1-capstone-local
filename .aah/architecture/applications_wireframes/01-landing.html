@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 — Landing | Spoonful Wireframe</title>
+<style>
+  /* CHROME TOKENS (Direction B — Modern Pantry) */
+  :root {
+    --chrome-primary: #3A7D5E;
+    --chrome-accent: #F2C94C;
+    --chrome-dark: #1A1A1A;
+    --chrome-bg: #F5F5F2;
+    --chrome-surface: #FFFFFF;
+    --chrome-muted: #6B6B6B;
+    --chrome-border: #E0E0DC;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    /* CANVAS — neutral grayscale only */
+    --canvas-bg: #F8F8F8;
+    --canvas-surface: #FFFFFF;
+    --canvas-border: #D4D4D4;
+    --canvas-muted: #9B9B9B;
+    --canvas-dark: #2C2C2C;
+    --canvas-placeholder: #E8E8E8;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--chrome-bg); color: var(--chrome-dark); font-size: 15px; line-height: 1.6; }
+
+  /* CHROME — navbar */
+  nav.navbar {
+    background: var(--chrome-surface); border-bottom: 1px solid var(--chrome-border);
+    padding: 0 64px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo { font-size: 20px; font-weight: 800; color: var(--chrome-dark); letter-spacing: -.03em; }
+  .nav-logo em { color: var(--chrome-primary); font-style: normal; }
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-links a { text-decoration: none; color: var(--chrome-muted); font-size: 14px; font-weight: 500; }
+  .btn-nav { background: var(--chrome-primary); color: #fff; padding: 9px 22px; border-radius: 100px; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .badge { font-size: 10px; color: var(--chrome-muted); font-family: monospace; margin-left: 5px; }
+
+  /* CANVAS — hero split */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 480px; background: var(--canvas-surface); border-bottom: 1px solid var(--canvas-border); }
+  .hero-left { padding: 72px 64px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--canvas-border); }
+  .wf-pill { display: inline-block; background: var(--canvas-placeholder); color: var(--canvas-muted); padding: 4px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 20px; width: fit-content; }
+  .wf-h1 { font-size: 48px; font-weight: 800; color: var(--canvas-dark); line-height: 1.1; letter-spacing: -.03em; margin-bottom: 16px; }
+  .wf-sub { font-size: 16px; color: var(--canvas-muted); margin-bottom: 36px; max-width: 360px; }
+  .wf-ctas { display: flex; gap: 14px; }
+  .wf-btn { background: var(--canvas-dark); color: #fff; padding: 12px 28px; border-radius: 100px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; }
+  .wf-btn-ghost { background: transparent; color: var(--canvas-dark); padding: 11px 28px; border-radius: 100px; border: 2px solid var(--canvas-border); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .region-note { font-size: 10px; color: var(--canvas-muted); font-family: monospace; margin-top: 12px; }
+
+  .hero-right { background: var(--canvas-bg); padding: 36px 48px; display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+  .hero-right-label { font-size: 11px; color: var(--canvas-muted); font-family: monospace; margin-bottom: 4px; }
+  .preview-card { background: var(--canvas-surface); border: 1px solid var(--canvas-border); border-radius: 8px; display: flex; align-items: center; gap: 14px; padding: 12px 14px; }
+  .preview-thumb { width: 56px; height: 56px; background: var(--canvas-placeholder); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--canvas-muted); font-family: monospace; }
+  .preview-title { font-size: 14px; font-weight: 700; color: var(--canvas-dark); }
+  .preview-tag { font-size: 12px; color: var(--canvas-muted); }
+
+  /* CANVAS — featured section */
+  .featured { padding: 60px 64px; background: var(--canvas-bg); }
+  .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 28px; }
+  .wf-section-title { font-size: 24px; font-weight: 800; color: var(--canvas-dark); letter-spacing: -.02em; }
+  .wf-link { font-size: 13px; color: var(--canvas-muted); font-weight: 600; }
+  .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .recipe-card { background: var(--canvas-surface); border: 1px solid var(--canvas-border); border-radius: 8px; overflow: hidden; }
+  .card-img { height: 150px; background: var(--canvas-placeholder); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--canvas-muted); font-family: monospace; }
+  .card-body { padding: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--canvas-dark); margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--canvas-muted); margin-bottom: 10px; }
+  .card-tags { display: flex; gap: 6px; }
+  .tag { background: var(--canvas-placeholder); color: var(--canvas-muted); padding: 3px 10px; border-radius: 100px; font-size: 11px; }
+
+  /* CHROME — footer */
+  footer { background: var(--chrome-dark); color: rgba(255,255,255,.4); padding: 28px 64px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .footer-logo { font-size: 17px; font-weight: 800; color: #fff; }
+  .footer-logo em { color: var(--chrome-primary); font-style: normal; }
+
+  /* LEGEND */
+  .legend { background: var(--chrome-surface); border-top: 3px solid var(--chrome-primary); padding: 20px 64px; }
+  .legend h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--chrome-muted); margin-bottom: 10px; }
+  .legend-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .legend-item { border: 1px solid var(--chrome-border); border-radius: 4px; padding: 8px 10px; font-size: 12px; }
+  .l-tag { font-family: monospace; font-weight: 700; color: var(--chrome-primary); }
+  .l-role { font-weight: 600; color: var(--chrome-dark); }
+  .l-data { font-size: 11px; color: var(--chrome-muted); }
+  .viewport-note { text-align: center; font-size: 11px; color: var(--chrome-muted); padding: 6px; background: var(--chrome-bg); border-top: 1px solid var(--chrome-border); font-family: monospace; }
+  .screen-spine { background: var(--chrome-primary); color: #fff; text-align: center; padding: 10px; font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="screen-spine">LANDING — What can I discover today? <span class="badge" style="color:rgba(255,255,255,.5)">(01-landing)</span></div>
+
+<!-- CHROME: [A] NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">sp<em>oon</em>ful <span class="badge">[A]</span></div>
+  <div class="nav-links">
+    <a href="#">Recipes</a>
+    <a href="#">AI Assistant</a>
+    <a href="#" class="btn-nav">Login</a>
+  </div>
+</nav>
+
+<!-- CANVAS: [B★] HERO — split -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="wf-pill">Free to browse</div>
+    <h1 class="wf-h1">Find your next favorite recipe.</h1>
+    <p class="wf-sub">Browse a growing collection of recipes. Use AI to analyze and discover what to cook next.</p>
+    <div class="wf-ctas">
+      <button class="wf-btn">Explore Recipes</button>
+      <button class="wf-btn-ghost">Login</button>
+    </div>
+    <div class="region-note">[B★] Hero — static copy · states: default</div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-right-label">[B★] Hero right — GET /api/recipes?limit=3</div>
+    <div class="preview-card">
+      <div class="preview-thumb">img</div>
+      <div><div class="preview-title">Recipe Title</div><div class="preview-tag">tag · tag</div></div>
+    </div>
+    <div class="preview-card">
+      <div class="preview-thumb">img</div>
+      <div><div class="preview-title">Recipe Title</div><div class="preview-tag">tag · tag</div></div>
+    </div>
+    <div class="preview-card">
+      <div class="preview-thumb">img</div>
+      <div><div class="preview-title">Recipe Title</div><div class="preview-tag">tag · tag</div></div>
+    </div>
+    <div class="region-note">states: loading skeleton → populated</div>
+  </div>
+</section>
+
+<!-- CANVAS: [C] FEATURED RECIPES -->
+<section class="featured">
+  <div class="section-header">
+    <div class="wf-section-title">Recently Added <span class="badge">[C]</span></div>
+    <span class="wf-link">View all recipes →</span>
+  </div>
+  <div class="recipe-grid">
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title</div>
+        <div class="card-desc">Short description of the recipe goes here.</div>
+        <div class="card-tags"><span class="tag">tag</span><span class="tag">tag</span></div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title</div>
+        <div class="card-desc">Short description of the recipe goes here.</div>
+        <div class="card-tags"><span class="tag">tag</span></div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title</div>
+        <div class="card-desc">Short description of the recipe goes here.</div>
+        <div class="card-tags"><span class="tag">tag</span><span class="tag">tag</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHROME: [D] FOOTER -->
+<footer>
+  <div class="footer-logo">sp<em>oon</em>ful <span class="badge" style="color:rgba(255,255,255,.2)">[D]</span></div>
+  <div>Recipes · AI Assistant · Login</div>
+</footer>
+
+<div class="legend">
+  <h4>Region Legend</h4>
+  <div class="legend-grid">
+    <div class="legend-item"><div class="l-tag">[A] Navbar</div><div class="l-role">Primary nav (chrome)</div><div class="l-data">auth state · guest / creator</div></div>
+    <div class="legend-item"><div class="l-tag">[B★] Hero</div><div class="l-role">Entry hero (dominant)</div><div class="l-data">GET /api/recipes?limit=3 · loading, populated</div></div>
+    <div class="legend-item"><div class="l-tag">[C] Featured</div><div class="l-role">Discovery strip</div><div class="l-data">GET /api/recipes?limit=3 · loading, populated, empty</div></div>
+    <div class="legend-item"><div class="l-tag">[D] Footer</div><div class="l-role">Secondary nav (chrome)</div><div class="l-data">static</div></div>
+  </div>
+</div>
+<div class="viewport-note">viewport: desktop-first (1280px min) · density: comfortable · mode: light</div>
+</body>
+</html>

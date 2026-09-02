@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 — Browse Recipes | Spoonful Wireframe</title>
+<style>
+  :root {
+    --chrome-primary:#3A7D5E;--chrome-dark:#1A1A1A;--chrome-bg:#F5F5F2;--chrome-surface:#FFFFFF;--chrome-muted:#6B6B6B;--chrome-border:#E0E0DC;
+    --cv-bg:#F8F8F8;--cv-surface:#FFFFFF;--cv-border:#D4D4D4;--cv-muted:#9B9B9B;--cv-dark:#2C2C2C;--cv-ph:#E8E8E8;
+    --font:'Segoe UI',system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--chrome-bg);color:var(--chrome-dark);font-size:15px;line-height:1.6}
+  nav.navbar{background:var(--chrome-surface);border-bottom:1px solid var(--chrome-border);padding:0 64px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .nav-logo{font-size:20px;font-weight:800;color:var(--chrome-dark);letter-spacing:-.03em}.nav-logo em{color:var(--chrome-primary);font-style:normal}
+  .nav-links{display:flex;gap:36px;align-items:center}.nav-links a{text-decoration:none;color:var(--chrome-muted);font-size:14px;font-weight:500}
+  .nav-links a.active{color:var(--chrome-primary);font-weight:700}
+  .btn-nav{background:var(--chrome-primary);color:#fff;padding:9px 22px;border-radius:100px;font-size:14px;font-weight:600;text-decoration:none}
+  .badge{font-size:10px;color:var(--chrome-muted);font-family:monospace;margin-left:5px}
+  .screen-spine{background:var(--chrome-primary);color:#fff;text-align:center;padding:10px;font-size:14px;font-weight:700;letter-spacing:.04em}
+
+  /* Search + Filter bar */
+  .search-bar{background:var(--cv-surface);border-bottom:1px solid var(--cv-border);padding:24px 64px}
+  .search-bar-label{font-size:11px;color:var(--cv-muted);font-family:monospace;margin-bottom:10px}
+  .search-row{display:flex;gap:14px;align-items:center}
+  .search-input{flex:1;background:var(--cv-ph);border:1px solid var(--cv-border);border-radius:100px;padding:10px 20px;font-size:14px;color:var(--cv-dark);outline:none}
+  .search-input::placeholder{color:var(--cv-muted)}
+  .filter-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .filter-pill{background:var(--cv-ph);color:var(--cv-muted);padding:5px 14px;border-radius:100px;font-size:12px;font-weight:600;border:1px solid var(--cv-border);cursor:pointer}
+  .filter-pill.active{background:var(--cv-dark);color:#fff;border-color:var(--cv-dark)}
+  .region-note{font-size:10px;color:var(--cv-muted);font-family:monospace;margin-top:8px}
+
+  /* Recipe grid */
+  .browse-main{padding:48px 64px;background:var(--cv-bg)}
+  .grid-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px}
+  .grid-count{font-size:14px;color:var(--cv-muted)}
+  .recipe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .recipe-card{background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:8px;overflow:hidden;cursor:pointer}
+  .card-img{height:160px;background:var(--cv-ph);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cv-muted);font-family:monospace}
+  .card-body{padding:16px}
+  .card-title{font-size:15px;font-weight:700;color:var(--cv-dark);margin-bottom:6px}
+  .card-desc{font-size:13px;color:var(--cv-muted);margin-bottom:10px}
+  .card-tags{display:flex;gap:6px}
+  .tag{background:var(--cv-ph);color:var(--cv-muted);padding:3px 10px;border-radius:100px;font-size:11px}
+  /* Empty state */
+  .empty-state{background:var(--cv-surface);border:1px dashed var(--cv-border);border-radius:8px;padding:48px;text-align:center;color:var(--cv-muted);font-size:15px}
+
+  footer{background:var(--chrome-dark);color:rgba(255,255,255,.4);padding:28px 64px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .footer-logo{font-size:17px;font-weight:800;color:#fff}.footer-logo em{color:var(--chrome-primary);font-style:normal}
+
+  .legend{background:var(--chrome-surface);border-top:3px solid var(--chrome-primary);padding:20px 64px}
+  .legend h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--chrome-muted);margin-bottom:10px}
+  .legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .legend-item{border:1px solid var(--chrome-border);border-radius:4px;padding:8px 10px;font-size:12px}
+  .l-tag{font-family:monospace;font-weight:700;color:var(--chrome-primary)}.l-role{font-weight:600;color:var(--chrome-dark)}.l-data{font-size:11px;color:var(--chrome-muted)}
+  .viewport-note{text-align:center;font-size:11px;color:var(--chrome-muted);padding:6px;background:var(--chrome-bg);border-top:1px solid var(--chrome-border);font-family:monospace}
+</style>
+</head>
+<body>
+<div class="screen-spine">BROWSE RECIPES — What's available to cook? <span style="opacity:.5;font-size:11px">(02-browse-recipes)</span></div>
+
+<nav class="navbar">
+  <div class="nav-logo">sp<em>oon</em>ful <span class="badge">[A]</span></div>
+  <div class="nav-links">
+    <a href="#" class="active">Recipes</a>
+    <a href="#">AI Assistant</a>
+    <a href="#" class="btn-nav">Login</a>
+  </div>
+</nav>
+
+<!-- [B] SEARCH + FILTER BAR (S4: tag-chip filter pills) -->
+<div class="search-bar">
+  <div class="search-bar-label">[B] Search &amp; Filters · GET /api/recipes?search=... · states: empty, typed, results-loading</div>
+  <div class="search-row">
+    <input type="text" class="search-input" placeholder="Search recipes by title, ingredient, or tag…">
+    <button style="background:var(--cv-dark);color:#fff;padding:10px 24px;border-radius:100px;border:none;font-size:14px;font-weight:600;cursor:pointer">Search</button>
+  </div>
+  <div class="filter-pills">
+    <span style="font-size:12px;color:var(--cv-muted);align-self:center;margin-right:4px">Filter:</span>
+    <span class="filter-pill active">All</span>
+    <span class="filter-pill">Vegan</span>
+    <span class="filter-pill">Italian</span>
+    <span class="filter-pill">Dessert</span>
+    <span class="filter-pill">Quick</span>
+    <span class="filter-pill">Salad</span>
+    <span class="filter-pill">Thai</span>
+  </div>
+  <div class="region-note">[B] — signature moment S4: tag-chip filter pills</div>
+</div>
+
+<!-- [C★] RECIPE GRID -->
+<div class="browse-main">
+  <div class="grid-header">
+    <div style="font-size:22px;font-weight:800;color:var(--cv-dark);letter-spacing:-.02em">All Recipes <span class="badge">[C★]</span></div>
+    <div class="grid-count">24 recipes found</div>
+  </div>
+  <div class="recipe-grid">
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span><span class="tag">tag</span></div></div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span></div></div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span><span class="tag">tag</span></div></div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span></div></div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span></div></div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body"><div class="card-title">Recipe Title</div><div class="card-desc">Brief description here.</div><div class="card-tags"><span class="tag">tag</span><span class="tag">tag</span></div></div>
+    </div>
+  </div>
+  <div class="region-note" style="margin-top:16px">[C★] Recipe Grid — GET /api/recipes · states: loading, populated, empty ("No recipes match your search")</div>
+
+  <!-- Empty state hint -->
+  <div style="margin-top:24px">
+    <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:8px">State: empty (no search match)</div>
+    <div class="empty-state">No recipes match your search.<br><span style="font-size:13px">Try a different keyword or clear the filters.</span></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">sp<em>oon</em>ful <span class="badge" style="color:rgba(255,255,255,.2)">[D]</span></div>
+  <div>Recipes · AI Assistant · Login</div>
+</footer>
+
+<div class="legend">
+  <h4>Region Legend</h4>
+  <div class="legend-grid">
+    <div class="legend-item"><div class="l-tag">[A] Navbar</div><div class="l-role">Primary nav (chrome)</div><div class="l-data">auth state · Recipes active</div></div>
+    <div class="legend-item"><div class="l-tag">[B] Search+Filter</div><div class="l-role">Query input + tag chips (S4)</div><div class="l-data">GET /api/recipes?search=&amp;tag= · empty, loading, results</div></div>
+    <div class="legend-item"><div class="l-tag">[C★] Recipe Grid</div><div class="l-role">Primary content (dominant)</div><div class="l-data">GET /api/recipes · loading, populated, empty</div></div>
+    <div class="legend-item"><div class="l-tag">[D] Footer</div><div class="l-role">Secondary nav (chrome)</div><div class="l-data">static</div></div>
+  </div>
+</div>
+<div class="viewport-note">viewport: desktop-first (1280px min) · density: comfortable · mode: light</div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 — Dashboard | Spoonful Wireframe</title>
+<style>
+  :root{--chrome-primary:#3A7D5E;--chrome-dark:#1A1A1A;--chrome-bg:#F5F5F2;--chrome-surface:#FFFFFF;--chrome-muted:#6B6B6B;--chrome-border:#E0E0DC;--cv-bg:#F8F8F8;--cv-surface:#FFFFFF;--cv-border:#D4D4D4;--cv-muted:#9B9B9B;--cv-dark:#2C2C2C;--cv-ph:#E8E8E8;--font:'Segoe UI',system-ui,sans-serif}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--chrome-bg);color:var(--chrome-dark);font-size:15px;line-height:1.6}
+  nav.navbar{background:var(--chrome-surface);border-bottom:1px solid var(--chrome-border);padding:0 64px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .nav-logo{font-size:20px;font-weight:800;color:var(--chrome-dark);letter-spacing:-.03em}.nav-logo em{color:var(--chrome-primary);font-style:normal}
+  .nav-links{display:flex;gap:36px;align-items:center}.nav-links a{text-decoration:none;color:var(--chrome-muted);font-size:14px;font-weight:500}
+  .nav-links a.active{color:var(--chrome-primary);font-weight:700}
+  .btn-nav-outline{background:transparent;color:var(--chrome-dark);padding:8px 20px;border-radius:100px;border:1px solid var(--chrome-border);font-size:14px;font-weight:600;text-decoration:none}
+  .badge{font-size:10px;color:var(--chrome-muted);font-family:monospace;margin-left:5px}
+  .screen-spine{background:var(--chrome-primary);color:#fff;text-align:center;padding:10px;font-size:14px;font-weight:700;letter-spacing:.04em}
+  .region-note{font-size:10px;color:var(--cv-muted);font-family:monospace;margin-top:8px}
+
+  /* [B] DASHBOARD HEADER */
+  .dash-header{background:var(--cv-surface);border-bottom:1px solid var(--cv-border);padding:32px 64px;display:flex;justify-content:space-between;align-items:center}
+  .dash-title{font-size:28px;font-weight:800;color:var(--cv-dark);letter-spacing:-.03em}
+  .dash-sub{font-size:14px;color:var(--cv-muted);margin-top:4px}
+  .btn-new{background:var(--cv-dark);color:#fff;padding:12px 24px;border-radius:100px;border:none;font-size:14px;font-weight:700;cursor:pointer}
+
+  /* [C★] MY RECIPES GRID */
+  .dash-main{padding:48px 64px;background:var(--cv-bg)}
+  .grid-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px}
+  .grid-count{font-size:14px;color:var(--cv-muted)}
+  .recipe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .recipe-card{background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:8px;overflow:hidden}
+  .card-img{height:140px;background:var(--cv-ph);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cv-muted);font-family:monospace}
+  .card-body{padding:16px}
+  .card-title{font-size:15px;font-weight:700;color:var(--cv-dark);margin-bottom:6px}
+  .card-desc{font-size:13px;color:var(--cv-muted);margin-bottom:12px}
+  .card-actions{display:flex;gap:8px}
+  .btn-edit{background:var(--cv-ph);color:var(--cv-dark);padding:7px 16px;border-radius:100px;border:1px solid var(--cv-border);font-size:12px;font-weight:600;cursor:pointer}
+  .btn-delete{background:transparent;color:#888;padding:7px 16px;border-radius:100px;border:1px solid var(--cv-border);font-size:12px;font-weight:600;cursor:pointer}
+
+  /* S3: optimistic state indicator */
+  .card-optimistic{opacity:.5;border:2px dashed var(--cv-border)}
+  .card-deleting{opacity:.4;position:relative}
+  .card-new-badge{position:absolute;top:8px;right:8px;background:var(--cv-dark);color:#fff;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700}
+
+  /* Empty state */
+  .empty-state{background:var(--cv-surface);border:1px dashed var(--cv-border);border-radius:8px;padding:56px;text-align:center;color:var(--cv-muted)}
+
+  /* [D] CREATE/EDIT MODAL OVERLAY */
+  .modal-backdrop{background:rgba(0,0,0,.35);position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center}
+  .modal{background:var(--cv-surface);border-radius:12px;padding:40px;width:100%;max-width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+  .modal-title{font-size:22px;font-weight:800;color:var(--cv-dark);letter-spacing:-.02em;margin-bottom:24px}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--cv-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px}
+  .field input,.field textarea{width:100%;background:var(--cv-ph);border:1px solid var(--cv-border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--cv-dark);outline:none;font-family:var(--font)}
+  .field textarea{resize:vertical;min-height:80px}
+  .field input::placeholder,.field textarea::placeholder{color:var(--cv-muted)}
+  .dynamic-list{background:var(--cv-bg);border:1px solid var(--cv-border);border-radius:8px;padding:12px;margin-top:6px}
+  .dynamic-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .dynamic-row input{flex:1;background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:6px;padding:8px 12px;font-size:13px}
+  .btn-add-row{font-size:12px;color:var(--cv-muted);background:none;border:none;cursor:pointer;padding:4px 0;font-family:var(--font)}
+  .modal-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end}
+  .btn-cancel{background:transparent;color:var(--cv-dark);padding:10px 22px;border-radius:100px;border:1px solid var(--cv-border);font-size:14px;font-weight:600;cursor:pointer}
+  .btn-save{background:var(--cv-dark);color:#fff;padding:10px 28px;border-radius:100px;border:none;font-size:14px;font-weight:700;cursor:pointer}
+  .modal-note{font-size:10px;color:var(--cv-muted);font-family:monospace;margin-top:14px;text-align:center}
+
+  /* Confirm delete dialog */
+  .confirm-dialog{background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:8px;padding:28px 32px;max-width:360px;text-align:center}
+  .confirm-title{font-size:18px;font-weight:800;color:var(--cv-dark);margin-bottom:10px}
+  .confirm-body{font-size:14px;color:var(--cv-muted);margin-bottom:24px}
+  .confirm-actions{display:flex;gap:12px;justify-content:center}
+  .btn-confirm-cancel{background:var(--cv-ph);color:var(--cv-dark);padding:9px 22px;border-radius:100px;border:1px solid var(--cv-border);font-size:13px;font-weight:600;cursor:pointer}
+  .btn-confirm-delete{background:var(--cv-dark);color:#fff;padding:9px 22px;border-radius:100px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+
+  footer{background:var(--chrome-dark);color:rgba(255,255,255,.4);padding:28px 64px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .footer-logo{font-size:17px;font-weight:800;color:#fff}.footer-logo em{color:var(--chrome-primary);font-style:normal}
+  .legend{background:var(--chrome-surface);border-top:3px solid var(--chrome-primary);padding:20px 64px}
+  .legend h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--chrome-muted);margin-bottom:10px}
+  .legend-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .legend-item{border:1px solid var(--chrome-border);border-radius:4px;padding:8px 10px;font-size:12px}
+  .l-tag{font-family:monospace;font-weight:700;color:var(--chrome-primary)}.l-role{font-weight:600;color:var(--chrome-dark)}.l-data{font-size:11px;color:var(--chrome-muted)}
+  .viewport-note{text-align:center;font-size:11px;color:var(--chrome-muted);padding:6px;background:var(--chrome-bg);border-top:1px solid var(--chrome-border);font-family:monospace}
+</style>
+</head>
+<body>
+<div class="screen-spine">DASHBOARD — What are my recipes, and how do I manage them? <span style="opacity:.5;font-size:11px">(06-dashboard)</span></div>
+
+<nav class="navbar">
+  <div class="nav-logo">sp<em>oon</em>ful <span class="badge">[A]</span></div>
+  <div class="nav-links">
+    <a href="#">Recipes</a><a href="#">AI Assistant</a>
+    <a href="#" class="active">Dashboard</a>
+    <a href="#" class="btn-nav-outline">Log Out</a>
+  </div>
+</nav>
+
+<!-- [B] DASHBOARD HEADER -->
+<div class="dash-header">
+  <div>
+    <div class="dash-title">My Recipes <span class="badge">[B]</span></div>
+    <div class="dash-sub">Welcome back, Creator Name</div>
+  </div>
+  <button class="btn-new">+ New Recipe</button>
+</div>
+
+<!-- [C★] MY RECIPES GRID -->
+<div class="dash-main">
+  <div class="grid-header">
+    <div style="font-size:22px;font-weight:800;color:var(--cv-dark);letter-spacing:-.02em">Your Recipes <span class="badge">[C★]</span></div>
+    <div class="grid-count">3 recipes</div>
+  </div>
+  <div class="recipe-grid">
+    <div class="recipe-card" style="position:relative">
+      <div class="card-new-badge">Just added</div>
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title</div>
+        <div class="card-desc">Short description.</div>
+        <div class="card-actions">
+          <button class="btn-edit">Edit</button>
+          <button class="btn-delete">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title</div>
+        <div class="card-desc">Short description.</div>
+        <div class="card-actions">
+          <button class="btn-edit">Edit</button>
+          <button class="btn-delete">Delete</button>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card card-deleting">
+      <div class="card-img">[ recipe image ]</div>
+      <div class="card-body">
+        <div class="card-title">Recipe Title (deleting…)</div>
+        <div class="card-desc">S3: optimistic fade-out before server confirms</div>
+        <div class="card-actions">
+          <button class="btn-edit" disabled>Edit</button>
+          <button class="btn-delete" disabled>Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="region-note">
+    [C★] GET /api/recipes (filtered by owner) · states: loading, populated, empty<br>
+    S3: optimistic UI — card appears on create, fades on delete before server confirms
+  </div>
+
+  <!-- Empty state -->
+  <div style="margin-top:32px">
+    <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:8px">State: empty (no recipes yet)</div>
+    <div class="empty-state">You haven't added any recipes yet.<br><span style="font-size:13px">Click "New Recipe" to get started.</span></div>
+  </div>
+</div>
+
+<!-- [D] CREATE/EDIT RECIPE MODAL -->
+<div style="padding:32px 64px;background:var(--cv-bg);border-top:2px solid var(--cv-border)">
+  <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:16px">[D] Create / Edit Recipe Modal — opens as overlay (state: open shown below)</div>
+  <div style="background:rgba(0,0,0,.08);border-radius:8px;padding:24px;position:relative">
+    <div class="modal">
+      <div class="modal-title">New Recipe <span class="badge">[D]</span></div>
+      <div class="field"><label>Title</label><input type="text" placeholder="Recipe title"></div>
+      <div class="field"><label>Description</label><textarea placeholder="Brief description of the recipe"></textarea></div>
+      <div class="field"><label>Image URL</label><input type="text" placeholder="https://example.com/image.jpg"></div>
+      <div class="field">
+        <label>Ingredients</label>
+        <div class="dynamic-list">
+          <div class="dynamic-row"><input placeholder="Name"><input placeholder="Qty" style="max-width:100px"><button style="background:none;border:none;cursor:pointer;color:#999">✕</button></div>
+          <div class="dynamic-row"><input placeholder="Name"><input placeholder="Qty" style="max-width:100px"><button style="background:none;border:none;cursor:pointer;color:#999">✕</button></div>
+          <button class="btn-add-row">+ Add ingredient</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Instructions</label>
+        <div class="dynamic-list">
+          <div class="dynamic-row"><input placeholder="Step 1 — describe what to do"><button style="background:none;border:none;cursor:pointer;color:#999">✕</button></div>
+          <div class="dynamic-row"><input placeholder="Step 2 — describe what to do"><button style="background:none;border:none;cursor:pointer;color:#999">✕</button></div>
+          <button class="btn-add-row">+ Add step</button>
+        </div>
+      </div>
+      <div class="field"><label>Tags</label><input type="text" placeholder="vegan, salad, quick (comma-separated)"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel">Cancel</button>
+        <button class="btn-save">Save Recipe</button>
+      </div>
+      <div class="modal-note">POST /api/recipes (create) · PUT /api/recipes/:id (edit, prefilled) · states: idle, loading (Save disabled), success (close + update grid), error</div>
+    </div>
+
+    <div style="margin-top:24px;font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:8px">State: confirm delete dialog</div>
+    <div class="confirm-dialog" style="margin:auto">
+      <div class="confirm-title">Delete recipe?</div>
+      <div class="confirm-body">This will permanently remove "Recipe Title". This action cannot be undone.</div>
+      <div class="confirm-actions">
+        <button class="btn-confirm-cancel">Cancel</button>
+        <button class="btn-confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">sp<em>oon</em>ful <span class="badge" style="color:rgba(255,255,255,.2)">[E]</span></div>
+  <div>Recipes · AI Assistant</div>
+</footer>
+
+<div class="legend">
+  <h4>Region Legend</h4>
+  <div class="legend-grid">
+    <div class="legend-item"><div class="l-tag">[A] Navbar</div><div class="l-role">Primary nav (chrome)</div><div class="l-data">creator context · Dashboard active, Logout btn</div></div>
+    <div class="legend-item"><div class="l-tag">[B] Dash Header</div><div class="l-role">Welcome + New Recipe CTA</div><div class="l-data">auth user name · static once loaded</div></div>
+    <div class="legend-item"><div class="l-tag">[C★] Recipe Grid</div><div class="l-role">Creator's recipes (dominant, S3)</div><div class="l-data">GET /api/recipes (owner filtered) · loading, populated, empty</div></div>
+    <div class="legend-item"><div class="l-tag">[D] Create/Edit Modal</div><div class="l-role">Recipe form overlay</div><div class="l-data">POST /api/recipes · PUT /api/recipes/:id · DELETE /api/recipes/:id</div></div>
+  </div>
+</div>
+<div class="viewport-note">viewport: desktop-first (1280px min) · density: comfortable · mode: light · protected route (RequireAuth)</div>
+</body>
+</html>

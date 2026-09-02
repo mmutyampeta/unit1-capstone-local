@@ -1,0 +1,299 @@
+schema_version: 1
+
+# Design system contract — resolved during /aah-ux (architecture phase)
+ui_system: frontend-design
+token_source: generated
+component_model: composition
+guidance:
+  ref: frontend_guidance.md
+install: none
+binding:
+  raw_hex: within-tokens
+mode: light
+
+# Direction chosen at Step 3.5 — governs every screen
+direction:
+  label: "Modern Pantry"
+  comp: design/direction.html
+  rules:
+    - "White top-nav with pill-shaped CTA button; logo uses bold sans with sage-green em-colored accent letters"
+    - "Two-panel layouts where content has a natural preview (left: primary action/text, right: supporting cards/data); single-column centered card for focused forms (login, signup)"
+    - "Bold geometric sans throughout — 800-weight headings with tight tracking (−0.03em); uppercase wide-tracking labels for section headers and filter tags"
+    - "Sage green (#3A7D5E) as the single primary/interactive color; off-white (#F5F5F2) body background; yellow (#F2C94C) sparingly for badges; pill-shaped chips in sage tint (rgba(58,125,94,.12))"
+
+# Tier-1 token system (generated, locked at direction selection)
+tokens:
+  color:
+    primary: "#3A7D5E"          # sage green — interactive, CTA, nav accent
+    accent: "#F2C94C"           # warm yellow — badges, highlights (sparing)
+    dark: "#1A1A1A"             # near-black — headings, high-contrast UI
+    bg: "#F5F5F2"               # warm off-white — body background
+    surface: "#FFFFFF"          # pure white — cards, modals, nav
+    muted: "#6B6B6B"            # mid gray — body text, labels, placeholders
+    border: "#E0E0DC"           # light warm gray — dividers, card borders
+    primary_tint: "rgba(58,125,94,0.12)"  # pill tag background
+  type:
+    display: "'Segoe UI', system-ui, -apple-system, sans-serif"
+    body: "'Segoe UI', system-ui, -apple-system, sans-serif"
+    mono: "'Cascadia Code', 'Consolas', monospace"
+    display_weight: 800
+    display_tracking: "-0.03em"
+    label_transform: "uppercase"
+    label_tracking: "0.08em"
+    label_weight: 700
+  spacing:
+    - xs: 8px
+    - sm: 16px
+    - md: 24px
+    - lg: 40px
+    - xl: 64px
+    - xxl: 80px
+  radius:
+    pill: "100px"          # buttons, tags, pills
+    card: "8px"            # cards, inputs, panels
+    modal: "12px"          # modals, overlays
+    tag_small: "4px"       # compact label chips
+
+# UX intake (from Checkpoint 1 of 6)
+intake:
+  expression: balanced
+  density_default: comfortable
+  feature_appetite: recommend-standouts
+
+# Per-screen design contract
+screens:
+
+  - id: 01-landing
+    entry: true
+    file: applications_wireframes/01-landing.html
+    density: comfortable
+    mode: light
+    hero: B
+    modules: [MOD-000, MOD-001]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "pill-CTA top-nav, logo with em-colored accent, muted nav links"
+        states: [guest, creator]
+        data: "localStorage JWT presence"
+      - tag: B
+        role: hero-primary
+        compose: "50/50 split — headline + CTAs left, 3 recipe preview cards right"
+        states: [loading-skeleton, populated]
+        data: "GET /api/recipes?limit=3 (right panel)"
+      - tag: C
+        role: discovery-strip
+        compose: "3-column recipe card grid, section title + view-all link"
+        states: [loading, populated, empty]
+        data: "GET /api/recipes?limit=3"
+      - tag: D
+        role: footer
+        compose: "dark footer bar, logo + nav links"
+        states: [default]
+        data: "static"
+
+  - id: 02-browse-recipes
+    entry: false
+    file: applications_wireframes/02-browse-recipes.html
+    density: comfortable
+    mode: light
+    hero: C
+    modules: [MOD-001]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "pill-CTA top-nav, Recipes link active"
+        states: [guest, creator]
+        data: "localStorage JWT presence"
+      - tag: B
+        role: search-filter
+        compose: "pill search input + tag-chip filter row (S4 signature)"
+        states: [empty, typing, results-loading, filtered]
+        data: "GET /api/recipes?search=&tag="
+      - tag: C
+        role: recipe-grid-primary
+        compose: "3-column card grid with image, title, description, tag chips"
+        states: [loading-skeleton, populated, empty-no-results]
+        data: "GET /api/recipes (with query params)"
+      - tag: D
+        role: footer
+        compose: "dark footer bar"
+        states: [default]
+        data: "static"
+
+  - id: 03-recipe-detail
+    entry: false
+    file: applications_wireframes/03-recipe-detail.html
+    density: comfortable
+    mode: light
+    hero: B
+    modules: [MOD-001]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "pill-CTA top-nav"
+        states: [guest, creator]
+        data: "localStorage JWT presence"
+      - tag: B
+        role: hero-image-primary
+        compose: "full-width 16:7 aspect-ratio food photo (S1 signature)"
+        states: [loading, loaded, error-fallback]
+        data: "GET /api/recipes/:id → imageUrl"
+      - tag: C
+        role: recipe-meta
+        compose: "back breadcrumb, large title, tag chips, creator attribution"
+        states: [loading, populated, not-found-404]
+        data: "GET /api/recipes/:id"
+      - tag: D
+        role: recipe-content
+        compose: "2-column — ingredients list left (name/quantity rows), numbered instruction steps right"
+        states: [loading, populated, empty-list]
+        data: "recipe.ingredients, recipe.instructions from GET /api/recipes/:id"
+
+  - id: 04-login
+    entry: false
+    file: applications_wireframes/04-login.html
+    density: comfortable
+    mode: light
+    hero: B
+    modules: [MOD-002]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "minimal top-nav, no Login btn (already on login page)"
+        states: [default]
+        data: "static"
+      - tag: B
+        role: auth-form-primary
+        compose: "centered card — email + password fields, pill submit button"
+        states: [idle, loading, error-invalid-credentials, success-redirect]
+        data: "POST /api/users/login → JWT token"
+      - tag: C
+        role: signup-cta
+        compose: "inline text link to /signup"
+        states: [default]
+        data: "static"
+
+  - id: 05-signup
+    entry: false
+    file: applications_wireframes/05-signup.html
+    density: comfortable
+    mode: light
+    hero: B
+    modules: [MOD-002]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "minimal top-nav, no Login btn"
+        states: [default]
+        data: "static"
+      - tag: B
+        role: registration-form-primary
+        compose: "centered card — email + password + confirm-password fields, pill submit"
+        states: [idle, loading, error-duplicate-email, error-password-mismatch, success-redirect]
+        data: "POST /api/users/signup → JWT token"
+      - tag: C
+        role: login-cta
+        compose: "inline text link to /login"
+        states: [default]
+        data: "static"
+
+  - id: 06-dashboard
+    entry: false
+    file: applications_wireframes/06-dashboard.html
+    density: comfortable
+    mode: light
+    hero: C
+    modules: [MOD-002, MOD-003]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "pill-CTA top-nav, Dashboard active, Logout link"
+        states: [creator-authenticated]
+        data: "localStorage JWT presence"
+      - tag: B
+        role: dashboard-header
+        compose: "welcome greeting + New Recipe pill button"
+        states: [default]
+        data: "auth user displayName"
+      - tag: C
+        role: creator-recipes-primary
+        compose: "3-column card grid with Edit/Delete actions per card (S3 optimistic UI)"
+        states: [loading, populated, empty-no-recipes]
+        data: "GET /api/recipes (owner-filtered by JWT)"
+      - tag: D
+        role: create-edit-modal
+        compose: "centered overlay modal — title, description, imageUrl, dynamic ingredient rows, dynamic instruction steps, tags"
+        states: [closed, open-create, open-edit-prefilled, saving, save-error, save-success]
+        data: "POST /api/recipes (create) · PUT /api/recipes/:id (edit) · DELETE /api/recipes/:id (delete + confirm dialog)"
+
+  - id: 07-ai-assistant
+    entry: false
+    file: applications_wireframes/07-ai-assistant.html
+    density: comfortable
+    mode: light
+    hero: C
+    modules: [MOD-004]
+    regions:
+      - tag: A
+        role: primary-nav
+        compose: "pill-CTA top-nav, AI Assistant active"
+        states: [guest, creator]
+        data: "localStorage JWT presence"
+      - tag: B
+        role: page-header
+        compose: "title + one-line description"
+        states: [default]
+        data: "static"
+      - tag: C
+        role: input-actions-primary
+        compose: "textarea + 3 action buttons (Summarize / Key Points / Classify Tone) in a 3-col grid"
+        states: [idle, empty-validation-error, loading-s2-streaming-indicator, streaming, complete]
+        data: "POST /api/ai/stream (SSE fetch)"
+      - tag: D
+        role: streaming-output
+        compose: "white output box rendering tokens progressively; animated dots during wait (S2)"
+        states: [idle-placeholder, s2-loading-dots, streaming-with-cursor, complete, error]
+        data: "SSE ReadableStream from POST /api/ai/stream"
+      - tag: E
+        role: session-history
+        compose: "list of last 3 prompt/response pairs (FIFO eviction, React state)"
+        states: [empty, has-1, has-2, has-3]
+        data: "React state (not persisted) · max 3 pairs"
+
+# Navigation contract
+navigation:
+  model: persistent-top-nav
+  entry: 01-landing
+  nav_items:
+    - label: "Spoonful (logo)"
+      route: "/"
+      access: all
+    - label: "Recipes"
+      route: "/recipes"
+      access: all
+    - label: "AI Assistant"
+      route: "/ai-assistant"
+      access: all
+    - label: "Login"
+      route: "/login"
+      access: guest-only    # hidden when creator is logged in
+    - label: "Dashboard"
+      route: "/dashboard"
+      access: creator-only  # shown when JWT present
+    - label: "Log Out"
+      route: null
+      access: creator-only  # clears localStorage + redirect to /
+  flows:
+    - id: guest-browse
+      steps: [01-landing → 02-browse-recipes → 03-recipe-detail]
+    - id: auth-login
+      steps: [04-login → 06-dashboard]
+    - id: auth-signup
+      steps: [05-signup → 06-dashboard]
+    - id: creator-crud
+      steps: [06-dashboard → modal-create | modal-edit | modal-delete]
+    - id: ai-analysis
+      steps: [01-landing → 07-ai-assistant (or direct nav)]
+  protected_routes: ["/dashboard"]
+  protected_wrapper: RequireAuth

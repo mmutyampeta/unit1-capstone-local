@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07 — AI Assistant | Spoonful Wireframe</title>
+<style>
+  :root{--chrome-primary:#3A7D5E;--chrome-dark:#1A1A1A;--chrome-bg:#F5F5F2;--chrome-surface:#FFFFFF;--chrome-muted:#6B6B6B;--chrome-border:#E0E0DC;--cv-bg:#F8F8F8;--cv-surface:#FFFFFF;--cv-border:#D4D4D4;--cv-muted:#9B9B9B;--cv-dark:#2C2C2C;--cv-ph:#E8E8E8;--font:'Segoe UI',system-ui,sans-serif}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--chrome-bg);color:var(--chrome-dark);font-size:15px;line-height:1.6}
+  nav.navbar{background:var(--chrome-surface);border-bottom:1px solid var(--chrome-border);padding:0 64px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .nav-logo{font-size:20px;font-weight:800;color:var(--chrome-dark);letter-spacing:-.03em}.nav-logo em{color:var(--chrome-primary);font-style:normal}
+  .nav-links{display:flex;gap:36px;align-items:center}.nav-links a{text-decoration:none;color:var(--chrome-muted);font-size:14px;font-weight:500}
+  .nav-links a.active{color:var(--chrome-primary);font-weight:700}
+  .btn-nav{background:var(--chrome-primary);color:#fff;padding:9px 22px;border-radius:100px;font-size:14px;font-weight:600;text-decoration:none}
+  .badge{font-size:10px;color:var(--chrome-muted);font-family:monospace;margin-left:5px}
+  .screen-spine{background:var(--chrome-primary);color:#fff;text-align:center;padding:10px;font-size:14px;font-weight:700;letter-spacing:.04em}
+  .region-note{font-size:10px;color:var(--cv-muted);font-family:monospace;margin-top:8px}
+
+  /* [B] PAGE HEADER */
+  .page-header{background:var(--cv-surface);border-bottom:1px solid var(--cv-border);padding:32px 64px}
+  .page-title{font-size:28px;font-weight:800;color:var(--cv-dark);letter-spacing:-.03em;margin-bottom:6px}
+  .page-sub{font-size:14px;color:var(--cv-muted)}
+
+  /* layout: two-column main area */
+  .ai-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--cv-bg);min-height:600px}
+
+  /* [C★] INPUT + ACTION BUTTONS */
+  .input-panel{background:var(--cv-surface);padding:40px 48px;border-right:1px solid var(--cv-border);display:flex;flex-direction:column;gap:20px}
+  .panel-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--cv-dark);margin-bottom:4px}
+  .text-input{width:100%;min-height:180px;background:var(--cv-ph);border:1px solid var(--cv-border);border-radius:8px;padding:14px 16px;font-size:14px;color:var(--cv-dark);resize:vertical;outline:none;font-family:var(--font)}
+  .text-input::placeholder{color:var(--cv-muted)}
+  .char-count{font-size:12px;color:var(--cv-muted);text-align:right}
+  .empty-error{font-size:12px;color:#888;font-family:monospace}
+  .action-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .action-btn{background:var(--cv-ph);color:var(--cv-dark);padding:14px 12px;border-radius:8px;border:1px solid var(--cv-border);font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+  .action-btn:hover{background:var(--cv-border)}
+  .action-btn.loading{opacity:.6;cursor:wait}
+  .action-btn-label{font-size:11px;color:var(--cv-muted);margin-top:4px}
+
+  /* [D] STREAMING OUTPUT PANE */
+  .output-panel{padding:40px 48px;background:var(--cv-bg);display:flex;flex-direction:column;gap:0}
+  .output-box{background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:8px;padding:20px;min-height:220px;font-size:14px;color:var(--cv-dark);line-height:1.7;position:relative}
+  /* S2: streaming indicator (animated dots) */
+  .streaming-indicator{display:flex;gap:4px;align-items:center;padding:8px 0}
+  .dot{width:7px;height:7px;background:var(--cv-muted);border-radius:50%;animation:bounce .9s infinite}
+  .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{transform:scale(1)}40%{transform:scale(1.4)}}
+  .stream-cursor{display:inline-block;width:2px;height:15px;background:var(--cv-dark);margin-left:1px;animation:blink 1s step-end infinite;vertical-align:text-bottom}
+  @keyframes blink{50%{opacity:0}}
+  .output-empty{color:var(--cv-muted);font-size:14px}
+  .output-error{background:var(--cv-ph);border-radius:6px;padding:12px 14px;font-size:13px;color:var(--cv-muted);font-family:monospace}
+
+  /* [E] SESSION HISTORY */
+  .history-section{padding:0 48px 40px;background:var(--cv-bg)}
+  .history-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--cv-dark);margin-bottom:14px;padding-top:24px;border-top:1px solid var(--cv-border)}
+  .history-item{background:var(--cv-surface);border:1px solid var(--cv-border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+  .hist-prompt{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--cv-muted);font-weight:700;margin-bottom:6px}
+  .hist-text{font-size:13px;color:var(--cv-dark);line-height:1.6}
+  .hist-meta{font-size:11px;color:var(--cv-muted);margin-top:6px;font-family:monospace}
+  .history-note{font-size:11px;color:var(--cv-muted);font-family:monospace;text-align:center;margin-top:8px}
+
+  footer{background:var(--chrome-dark);color:rgba(255,255,255,.4);padding:28px 64px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .footer-logo{font-size:17px;font-weight:800;color:#fff}.footer-logo em{color:var(--chrome-primary);font-style:normal}
+  .legend{background:var(--chrome-surface);border-top:3px solid var(--chrome-primary);padding:20px 64px}
+  .legend h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--chrome-muted);margin-bottom:10px}
+  .legend-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .legend-item{border:1px solid var(--chrome-border);border-radius:4px;padding:8px 10px;font-size:12px}
+  .l-tag{font-family:monospace;font-weight:700;color:var(--chrome-primary)}.l-role{font-weight:600;color:var(--chrome-dark)}.l-data{font-size:11px;color:var(--chrome-muted)}
+  .viewport-note{text-align:center;font-size:11px;color:var(--chrome-muted);padding:6px;background:var(--chrome-bg);border-top:1px solid var(--chrome-border);font-family:monospace}
+</style>
+</head>
+<body>
+<div class="screen-spine">AI ASSISTANT — How can I analyze this text? <span style="opacity:.5;font-size:11px">(07-ai-assistant)</span></div>
+
+<nav class="navbar">
+  <div class="nav-logo">sp<em>oon</em>ful <span class="badge">[A]</span></div>
+  <div class="nav-links">
+    <a href="#">Recipes</a>
+    <a href="#" class="active">AI Assistant</a>
+    <a href="#" class="btn-nav">Login</a>
+  </div>
+</nav>
+
+<!-- [B] PAGE HEADER -->
+<div class="page-header">
+  <div class="page-title">AI Assistant <span class="badge">[B]</span></div>
+  <div class="page-sub">Paste any text and choose an analysis — Summarize, Key Points, or Tone Classification.</div>
+</div>
+
+<div class="ai-layout">
+  <!-- [C★] TEXT INPUT + ACTION BUTTONS -->
+  <div class="input-panel">
+    <div>
+      <div class="panel-label">Your Text <span class="badge">[C★]</span></div>
+      <textarea class="text-input" placeholder="Paste any text here — a recipe description, article, or anything you'd like analyzed…"></textarea>
+      <div class="char-count">0 / 4000 characters</div>
+      <div class="empty-error">state: validation error → "Please enter some text before analyzing"</div>
+    </div>
+    <div>
+      <div class="panel-label" style="margin-bottom:12px">Choose Analysis</div>
+      <div class="action-btns">
+        <div>
+          <button class="action-btn">Summarize</button>
+          <div class="action-btn-label">→ concise summary</div>
+        </div>
+        <div>
+          <button class="action-btn">Key Points</button>
+          <div class="action-btn-label">→ bullet extraction</div>
+        </div>
+        <div>
+          <button class="action-btn">Classify Tone</button>
+          <div class="action-btn-label">→ tone analysis</div>
+        </div>
+      </div>
+      <div class="region-note">[C★] POST /api/ai/stream · states: idle, loading (S2 indicator), streaming, complete, error</div>
+    </div>
+  </div>
+
+  <!-- [D] STREAMING OUTPUT PANE -->
+  <div class="output-panel">
+    <div class="panel-label" style="margin-bottom:12px">[D] AI Response <span class="badge">[D]</span></div>
+
+    <!-- State: idle -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:6px">State: idle (no analysis yet)</div>
+      <div class="output-box"><span class="output-empty">Analysis will appear here. Choose an option above to get started.</span></div>
+    </div>
+
+    <!-- State: streaming (S2 indicator) -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:6px">State: streaming (S2 — animated dots then token-by-token text)</div>
+      <div class="output-box">
+        <div class="streaming-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span style="font-size:12px;color:var(--cv-muted);margin-left:6px">Analyzing…</span></div>
+        <div>This recipe presents a classic vegan approach to a traditionally non-vegan dish. The use of cashews as a base for the dressing is clever<span class="stream-cursor"></span></div>
+      </div>
+    </div>
+
+    <!-- State: error -->
+    <div>
+      <div style="font-size:12px;color:var(--cv-muted);font-family:monospace;margin-bottom:6px">State: error</div>
+      <div class="output-box">
+        <div class="output-error">⚠ Something went wrong. The AI service could not process your request.<br>Please try again.</div>
+      </div>
+    </div>
+    <div class="region-note">[D] ReadableStream from POST /api/ai/stream (SSE fetch + getReader) · states: idle, streaming, complete, error</div>
+  </div>
+</div>
+
+<!-- [E] SESSION HISTORY -->
+<div class="history-section">
+  <div class="history-title">Session History (last 3) <span class="badge">[E]</span></div>
+  <div class="history-item">
+    <div class="hist-prompt">Summarize</div>
+    <div class="hist-text">The text describes a vegan Caesar salad recipe that substitutes cashews for traditional dairy. The key technique is blending…</div>
+    <div class="hist-meta">2 minutes ago</div>
+  </div>
+  <div class="history-item">
+    <div class="hist-prompt">Classify Tone</div>
+    <div class="hist-text">The tone is instructional and encouraging, with a slightly casual register. The author uses direct second-person voice…</div>
+    <div class="hist-meta">5 minutes ago</div>
+  </div>
+  <div class="history-item">
+    <div class="hist-prompt">Key Points</div>
+    <div class="hist-text">• Cashew-based dressing replaces traditional Caesar • No dairy or eggs • Suitable for vegans and lactose-intolerant…</div>
+    <div class="hist-meta">8 minutes ago</div>
+  </div>
+  <div class="history-note">[E] React state (not persisted) · max 3 pairs · FIFO eviction</div>
+</div>
+
+<footer>
+  <div class="footer-logo">sp<em>oon</em>ful <span class="badge" style="color:rgba(255,255,255,.2)">[F]</span></div>
+  <div>Recipes · AI Assistant · Login</div>
+</footer>
+
+<div class="legend">
+  <h4>Region Legend</h4>
+  <div class="legend-grid">
+    <div class="legend-item"><div class="l-tag">[A] Navbar</div><div class="l-role">Primary nav (chrome)</div><div class="l-data">AI Assistant active</div></div>
+    <div class="legend-item"><div class="l-tag">[B] Header</div><div class="l-role">Page title + description</div><div class="l-data">static</div></div>
+    <div class="legend-item"><div class="l-tag">[C★] Input+Buttons</div><div class="l-role">Text input + 3 actions (dominant)</div><div class="l-data">POST /api/ai/stream · idle, loading, streaming, error</div></div>
+    <div class="legend-item"><div class="l-tag">[D] Output Pane</div><div class="l-role">Streaming response</div><div class="l-data">SSE ReadableStream · idle, S2 indicator, streaming, complete, error</div></div>
+    <div class="legend-item"><div class="l-tag">[E] History</div><div class="l-role">Last 3 exchanges</div><div class="l-data">React state · FIFO, 3 max, not persisted</div></div>
+  </div>
+</div>
+<div class="viewport-note">viewport: desktop-first (1280px min) · density: comfortable · mode: light · no auth required</div>
+</body>
+</html>
