@@ -1,0 +1,12 @@
+{
+  "indexed_at": "2026-09-02T14:37:04Z",
+  "indexer": "codemap-scale",
+  "version": "0.1.0",
+  "database_path": ".aah/codebase-intel/codemap.db",
+  "files_scanned": 14,
+  "symbols_extracted": 13,
+  "relations_extracted": 0,
+  "last_operation": "scout",
+  "last_wave": 0,
+  "semantic_index_built": false
+}

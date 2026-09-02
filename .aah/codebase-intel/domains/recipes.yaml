@@ -1,0 +1,76 @@
+domain: "recipes"
+last_updated: "2026-09-02T14:31:00Z"
+last_updated_after_feature: null
+
+narrative: |
+  The recipes domain is the core business logic of Spoonful, implementing full CRUD plus sub-document instruction management for Recipe documents in MongoDB. Public endpoints (getAll with filtering, getOne) require no auth; write endpoints (create, update, delete, instruction ops) require a valid JWT and ownership check. The Recipe model uses embedded sub-documents for ingredients and instructions rather than separate collections.
+
+source_files:
+  - path: "backend/controllers/recipes.js"
+    line_range: "1-133"
+    role: "All recipe handlers: create, getAll (with filter), getOne, update, delete, addInstruction, updateInstruction, deleteInstruction"
+  - path: "backend/models/recipe.js"
+    line_range: "1-32"
+    role: "Recipe Mongoose schema with embedded ingredientSchema and instructionSchema"
+  - path: "backend/routes/recipes.js"
+    line_range: "1-12"
+    role: "Route bindings for /api/recipes — GET public, POST/PUT/DELETE protected by verifyToken"
+
+flow_traces:
+  - name: "getAll with filters"
+    description: "Public recipe listing with optional query-string filters"
+    steps:
+      - "routes/recipes.js:6 -> GET / dispatches to recipesCtrl.getAll (no middleware)"
+      - "controllers/recipes.js:69 -> destructure { title, tag, ingredient } from req.query"
+      - "controllers/recipes.js:71 -> if title: query.title = { $regex, $options:'i' }"
+      - "controllers/recipes.js:74 -> if tag: query.tags = tag"
+      - "controllers/recipes.js:77 -> if ingredient: query['ingredients.name'] = ingredient"
+      - "controllers/recipes.js:80 -> Recipe.find(query) returns matching docs"
+      - "controllers/recipes.js:81 -> res.json(recipes)"
+  - name: "create recipe"
+    description: "Authenticated recipe creation with ownerId from token"
+    steps:
+      - "routes/recipes.js:8 -> POST / -> verifyToken -> recipesCtrl.create"
+      - "middleware/verifyToken.js:8 -> req.user populated from decoded JWT"
+      - "controllers/recipes.js:57 -> Recipe.create({ ...req.body, ownerId: req.user._id })"
+      - "controllers/recipes.js:60 -> res.status(201).json(recipe)"
+  - name: "update/delete with ownership"
+    description: "Mutating operations with ownership gate"
+    steps:
+      - "routes/recipes.js:9-10 -> verifyToken applied before update/delete controllers"
+      - "controllers/recipes.js:101 -> Recipe.findById(req.params.id)"
+      - "controllers/recipes.js:105 -> recipe.ownerId.toString() !== req.user._id -> 403"
+      - "controllers/recipes.js:108 -> Recipe.findByIdAndUpdate(id, req.body, { new: true })"
+  - name: "instruction sub-document ops (no routes yet)"
+    description: "Add/update/delete instruction sub-documents — implemented but not routed"
+    steps:
+      - "controllers/recipes.js:14 -> addInstruction: Recipe.findById -> ownership check -> recipe.instructions.push(req.body) -> recipe.save()"
+      - "controllers/recipes.js:28 -> updateInstruction: .id(req.params.instructionId).set(req.body) -> recipe.save()"
+      - "controllers/recipes.js:43 -> deleteInstruction: .id(req.params.instructionId).remove() -> recipe.save()"
+
+integration_points:
+  - target: "auth domain"
+    mechanism: "verifyToken middleware imported from middleware/verifyToken.js applied in routes"
+    direction: "inbound"
+  - target: "MongoDB"
+    mechanism: "Mongoose Recipe model — find, findById, create, findByIdAndUpdate, findByIdAndDelete"
+    direction: "outbound"
+
+known_issues:
+  - description: "addInstruction, updateInstruction, deleteInstruction controller functions exist but have no corresponding routes in routes/recipes.js — they are unreachable via HTTP"
+    severity: "high"
+    workaround: "Add routes (e.g., POST /api/recipes/:id/instructions, PATCH/DELETE /api/recipes/:id/instructions/:instructionId) to routes/recipes.js to expose these handlers"
+  - description: "Recipe.findByIdAndUpdate in the update handler accepts the full req.body without field whitelisting — a client could overwrite ownerId"
+    severity: "medium"
+    workaround: "Consider destructuring only allowed fields from req.body before passing to findByIdAndUpdate in production use"
+
+patterns:
+  - name: "ownership guard"
+    description: "All write operations check recipe.ownerId.toString() !== req.user._id and return 403 before mutating. Must use .toString() to convert ObjectId to string."
+    example_file: "backend/controllers/recipes.js:105"
+  - name: "ownerId injection at create"
+    description: "ownerId is spread with req.body but overridden from req.user._id — client cannot set ownerId to another user's ID."
+    example_file: "backend/controllers/recipes.js:59"
+  - name: "sub-document access via .id()"
+    description: "Mongoose sub-documents are accessed by their nested _id using the .id() method on the parent array before calling .set() or .remove()."
+    example_file: "backend/controllers/recipes.js:34"

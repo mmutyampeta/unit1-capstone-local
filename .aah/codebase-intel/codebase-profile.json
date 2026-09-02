@@ -1,0 +1,729 @@
+{
+  "profile_version": "1.0",
+  "root": "C:\\Users\\mmutyampeta\\Downloads\\bootcamp\\unit1-capstone",
+  "summary": {
+    "total_files": 23,
+    "total_lines": 582,
+    "total_bytes": 14514,
+    "primary_language": "javascript",
+    "languages": {
+      "javascript": 10,
+      "json": 5,
+      "yaml": 2,
+      "docker": 2,
+      "typescript": 2,
+      "tsx": 2
+    },
+    "frameworks": [],
+    "data_stores": [
+      "mongodb"
+    ]
+  },
+  "directory_structure": {
+    "backend": 12,
+    "client": 11
+  },
+  "architecture": {
+    "layers": {
+      "application": 10,
+      "infrastructure": 6,
+      "presentation": 5,
+      "data": 2
+    },
+    "layer_files": {
+      "application": [
+        "backend\\docker-compose.dev.yml",
+        "backend\\eslint.config.mjs",
+        "backend\\server.js",
+        "client\\eslint.config.js",
+        "client\\src\\App.tsx",
+        "client\\src\\main.tsx",
+        "client\\src\\vite-env.d.ts",
+        "client\\tsconfig.app.json",
+        "client\\tsconfig.node.json",
+        "client\\vite.config.ts"
+      ],
+      "infrastructure": [
+        "backend\\Dockerfile",
+        "backend\\package.json",
+        "client\\Dockerfile",
+        "client\\docker-compose.yml",
+        "client\\package.json",
+        "client\\tsconfig.json"
+      ],
+      "presentation": [
+        "backend\\controllers\\recipes.js",
+        "backend\\controllers\\users.js",
+        "backend\\middleware\\verifyToken.js",
+        "backend\\routes\\recipes.js",
+        "backend\\routes\\users.js"
+      ],
+      "data": [
+        "backend\\models\\recipe.js",
+        "backend\\models\\user.js"
+      ]
+    },
+    "coupling": {
+      "afferent_top": [
+        {
+          "module": "express",
+          "dependents": 3
+        },
+        {
+          "module": "mongoose",
+          "dependents": 3
+        },
+        {
+          "module": "jsonwebtoken",
+          "dependents": 2
+        },
+        {
+          "module": "../models/recipe",
+          "dependents": 1
+        },
+        {
+          "module": "../models/user",
+          "dependents": 1
+        },
+        {
+          "module": "../controllers/recipes",
+          "dependents": 1
+        },
+        {
+          "module": "../middleware/verifyToken",
+          "dependents": 1
+        },
+        {
+          "module": "../controllers/users",
+          "dependents": 1
+        },
+        {
+          "module": "bcrypt",
+          "dependents": 1
+        },
+        {
+          "module": "morgan",
+          "dependents": 1
+        },
+        {
+          "module": "cors",
+          "dependents": 1
+        },
+        {
+          "module": "vite",
+          "dependents": 1
+        },
+        {
+          "module": "@vitejs/plugin-react",
+          "dependents": 1
+        }
+      ],
+      "efferent_top": [
+        {
+          "module": "backend\\server.js",
+          "dependencies": 4
+        },
+        {
+          "module": "backend\\routes\\recipes.js",
+          "dependencies": 3
+        },
+        {
+          "module": "backend\\controllers\\users.js",
+          "dependencies": 2
+        },
+        {
+          "module": "backend\\routes\\users.js",
+          "dependencies": 2
+        },
+        {
+          "module": "backend\\models\\user.js",
+          "dependencies": 2
+        },
+        {
+          "module": "client\\vite.config.ts",
+          "dependencies": 2
+        },
+        {
+          "module": "backend\\controllers\\recipes.js",
+          "dependencies": 1
+        },
+        {
+          "module": "backend\\middleware\\verifyToken.js",
+          "dependencies": 1
+        },
+        {
+          "module": "backend\\models\\recipe.js",
+          "dependencies": 1
+        }
+      ]
+    },
+    "hotspots": [
+      {
+        "file": "backend\\controllers\\recipes.js",
+        "symbols": 20
+      },
+      {
+        "file": "backend\\controllers\\users.js",
+        "symbols": 10
+      },
+      {
+        "file": "backend\\server.js",
+        "symbols": 7
+      },
+      {
+        "file": "backend\\models\\user.js",
+        "symbols": 6
+      },
+      {
+        "file": "backend\\middleware\\verifyToken.js",
+        "symbols": 5
+      },
+      {
+        "file": "backend\\routes\\recipes.js",
+        "symbols": 5
+      },
+      {
+        "file": "backend\\models\\recipe.js",
+        "symbols": 5
+      },
+      {
+        "file": "backend\\routes\\users.js",
+        "symbols": 4
+      }
+    ]
+  },
+  "symbols": {
+    "total": 62,
+    "files_parsed": 12,
+    "by_kind": {
+      "const": 45,
+      "function": 12,
+      "export": 5
+    },
+    "top_level": [
+      {
+        "name": "Recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 1,
+        "fqn": "backend\\controllers\\recipes.js:Recipe"
+      },
+      {
+        "name": "addInstruction",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 14,
+        "fqn": "backend\\controllers\\recipes.js:addInstruction"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 16,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "updateInstruction",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 28,
+        "fqn": "backend\\controllers\\recipes.js:updateInstruction"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 30,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "instruction",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 34,
+        "fqn": "backend\\controllers\\recipes.js:instruction"
+      },
+      {
+        "name": "deleteInstruction",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 43,
+        "fqn": "backend\\controllers\\recipes.js:deleteInstruction"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 45,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "create",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 57,
+        "fqn": "backend\\controllers\\recipes.js:create"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 59,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "getAll",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 66,
+        "fqn": "backend\\controllers\\recipes.js:getAll"
+      },
+      {
+        "name": "query",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 70,
+        "fqn": "backend\\controllers\\recipes.js:query"
+      },
+      {
+        "name": "recipes",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 80,
+        "fqn": "backend\\controllers\\recipes.js:recipes"
+      },
+      {
+        "name": "getOne",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 87,
+        "fqn": "backend\\controllers\\recipes.js:getOne"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 89,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "update",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 99,
+        "fqn": "backend\\controllers\\recipes.js:update"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 101,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "updatedRecipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 108,
+        "fqn": "backend\\controllers\\recipes.js:updatedRecipe"
+      },
+      {
+        "name": "deleteOne",
+        "kind": "function",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 119,
+        "fqn": "backend\\controllers\\recipes.js:deleteOne"
+      },
+      {
+        "name": "recipe",
+        "kind": "const",
+        "file": "backend\\controllers\\recipes.js",
+        "line": 121,
+        "fqn": "backend\\controllers\\recipes.js:recipe"
+      },
+      {
+        "name": "User",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 1,
+        "fqn": "backend\\controllers\\users.js:User"
+      },
+      {
+        "name": "jwt",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 2,
+        "fqn": "backend\\controllers\\users.js:jwt"
+      },
+      {
+        "name": "SECRET",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 3,
+        "fqn": "backend\\controllers\\users.js:SECRET"
+      },
+      {
+        "name": "signup",
+        "kind": "function",
+        "file": "backend\\controllers\\users.js",
+        "line": 10,
+        "fqn": "backend\\controllers\\users.js:signup"
+      },
+      {
+        "name": "user",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 11,
+        "fqn": "backend\\controllers\\users.js:user"
+      },
+      {
+        "name": "token",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 14,
+        "fqn": "backend\\controllers\\users.js:token"
+      },
+      {
+        "name": "login",
+        "kind": "function",
+        "file": "backend\\controllers\\users.js",
+        "line": 21,
+        "fqn": "backend\\controllers\\users.js:login"
+      },
+      {
+        "name": "user",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 23,
+        "fqn": "backend\\controllers\\users.js:user"
+      },
+      {
+        "name": "token",
+        "kind": "const",
+        "file": "backend\\controllers\\users.js",
+        "line": 27,
+        "fqn": "backend\\controllers\\users.js:token"
+      },
+      {
+        "name": "createJWT",
+        "kind": "function",
+        "file": "backend\\controllers\\users.js",
+        "line": 40,
+        "fqn": "backend\\controllers\\users.js:createJWT"
+      },
+      {
+        "name": "jwt",
+        "kind": "const",
+        "file": "backend\\middleware\\verifyToken.js",
+        "line": 1,
+        "fqn": "backend\\middleware\\verifyToken.js:jwt"
+      },
+      {
+        "name": "verifyToken",
+        "kind": "function",
+        "file": "backend\\middleware\\verifyToken.js",
+        "line": 3,
+        "fqn": "backend\\middleware\\verifyToken.js:verifyToken"
+      },
+      {
+        "name": "token",
+        "kind": "const",
+        "file": "backend\\middleware\\verifyToken.js",
+        "line": 5,
+        "fqn": "backend\\middleware\\verifyToken.js:token"
+      },
+      {
+        "name": "decoded",
+        "kind": "const",
+        "file": "backend\\middleware\\verifyToken.js",
+        "line": 6,
+        "fqn": "backend\\middleware\\verifyToken.js:decoded"
+      },
+      {
+        "name": "verifyToken",
+        "kind": "export",
+        "file": "backend\\middleware\\verifyToken.js",
+        "line": 15,
+        "fqn": "backend\\middleware\\verifyToken.js:verifyToken"
+      },
+      {
+        "name": "express",
+        "kind": "const",
+        "file": "backend\\routes\\recipes.js",
+        "line": 1,
+        "fqn": "backend\\routes\\recipes.js:express"
+      },
+      {
+        "name": "router",
+        "kind": "const",
+        "file": "backend\\routes\\recipes.js",
+        "line": 2,
+        "fqn": "backend\\routes\\recipes.js:router"
+      },
+      {
+        "name": "recipesCtrl",
+        "kind": "const",
+        "file": "backend\\routes\\recipes.js",
+        "line": 3,
+        "fqn": "backend\\routes\\recipes.js:recipesCtrl"
+      },
+      {
+        "name": "verifyToken",
+        "kind": "const",
+        "file": "backend\\routes\\recipes.js",
+        "line": 4,
+        "fqn": "backend\\routes\\recipes.js:verifyToken"
+      },
+      {
+        "name": "router",
+        "kind": "export",
+        "file": "backend\\routes\\recipes.js",
+        "line": 12,
+        "fqn": "backend\\routes\\recipes.js:router"
+      },
+      {
+        "name": "express",
+        "kind": "const",
+        "file": "backend\\routes\\users.js",
+        "line": 1,
+        "fqn": "backend\\routes\\users.js:express"
+      },
+      {
+        "name": "router",
+        "kind": "const",
+        "file": "backend\\routes\\users.js",
+        "line": 2,
+        "fqn": "backend\\routes\\users.js:router"
+      },
+      {
+        "name": "usersCtrl",
+        "kind": "const",
+        "file": "backend\\routes\\users.js",
+        "line": 3,
+        "fqn": "backend\\routes\\users.js:usersCtrl"
+      },
+      {
+        "name": "router",
+        "kind": "export",
+        "file": "backend\\routes\\users.js",
+        "line": 8,
+        "fqn": "backend\\routes\\users.js:router"
+      },
+      {
+        "name": "mongoose",
+        "kind": "const",
+        "file": "backend\\models\\recipe.js",
+        "line": 1,
+        "fqn": "backend\\models\\recipe.js:mongoose"
+      },
+      {
+        "name": "ingredientSchema",
+        "kind": "const",
+        "file": "backend\\models\\recipe.js",
+        "line": 3,
+        "fqn": "backend\\models\\recipe.js:ingredientSchema"
+      },
+      {
+        "name": "instructionSchema",
+        "kind": "const",
+        "file": "backend\\models\\recipe.js",
+        "line": 8,
+        "fqn": "backend\\models\\recipe.js:instructionSchema"
+      },
+      {
+        "name": "recipeSchema",
+        "kind": "const",
+        "file": "backend\\models\\recipe.js",
+        "line": 13,
+        "fqn": "backend\\models\\recipe.js:recipeSchema"
+      },
+      {
+        "name": "mongoose",
+        "kind": "export",
+        "file": "backend\\models\\recipe.js",
+        "line": 32,
+        "fqn": "backend\\models\\recipe.js:mongoose"
+      },
+      {
+        "name": "mongoose",
+        "kind": "const",
+        "file": "backend\\models\\user.js",
+        "line": 1,
+        "fqn": "backend\\models\\user.js:mongoose"
+      },
+      {
+        "name": "bcrypt",
+        "kind": "const",
+        "file": "backend\\models\\user.js",
+        "line": 2,
+        "fqn": "backend\\models\\user.js:bcrypt"
+      },
+      {
+        "name": "SALT_ROUNDS",
+        "kind": "const",
+        "file": "backend\\models\\user.js",
+        "line": 4,
+        "fqn": "backend\\models\\user.js:SALT_ROUNDS"
+      },
+      {
+        "name": "userSchema",
+        "kind": "const",
+        "file": "backend\\models\\user.js",
+        "line": 6,
+        "fqn": "backend\\models\\user.js:userSchema"
+      },
+      {
+        "name": "user",
+        "kind": "const",
+        "file": "backend\\models\\user.js",
+        "line": 28,
+        "fqn": "backend\\models\\user.js:user"
+      },
+      {
+        "name": "mongoose",
+        "kind": "export",
+        "file": "backend\\models\\user.js",
+        "line": 41,
+        "fqn": "backend\\models\\user.js:mongoose"
+      },
+      {
+        "name": "express",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 2,
+        "fqn": "backend\\server.js:express"
+      },
+      {
+        "name": "mongoose",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 3,
+        "fqn": "backend\\server.js:mongoose"
+      },
+      {
+        "name": "morgan",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 4,
+        "fqn": "backend\\server.js:morgan"
+      },
+      {
+        "name": "app",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 5,
+        "fqn": "backend\\server.js:app"
+      },
+      {
+        "name": "PORT",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 6,
+        "fqn": "backend\\server.js:PORT"
+      },
+      {
+        "name": "cors",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 7,
+        "fqn": "backend\\server.js:cors"
+      },
+      {
+        "name": "db",
+        "kind": "const",
+        "file": "backend\\server.js",
+        "line": 10,
+        "fqn": "backend\\server.js:db"
+      }
+    ]
+  },
+  "imports": {
+    "module_graph_size": 9,
+    "entries": [
+      {
+        "file": "backend\\controllers\\recipes.js",
+        "imports": [
+          "../models/recipe"
+        ]
+      },
+      {
+        "file": "backend\\controllers\\users.js",
+        "imports": [
+          "../models/user",
+          "jsonwebtoken"
+        ]
+      },
+      {
+        "file": "backend\\middleware\\verifyToken.js",
+        "imports": [
+          "jsonwebtoken"
+        ]
+      },
+      {
+        "file": "backend\\routes\\recipes.js",
+        "imports": [
+          "express",
+          "../controllers/recipes",
+          "../middleware/verifyToken"
+        ]
+      },
+      {
+        "file": "backend\\routes\\users.js",
+        "imports": [
+          "express",
+          "../controllers/users"
+        ]
+      },
+      {
+        "file": "backend\\models\\recipe.js",
+        "imports": [
+          "mongoose"
+        ]
+      },
+      {
+        "file": "backend\\models\\user.js",
+        "imports": [
+          "mongoose",
+          "bcrypt"
+        ]
+      },
+      {
+        "file": "backend\\server.js",
+        "imports": [
+          "express",
+          "mongoose",
+          "morgan",
+          "cors"
+        ]
+      },
+      {
+        "file": "client\\vite.config.ts",
+        "imports": [
+          "vite",
+          "@vitejs/plugin-react"
+        ]
+      }
+    ]
+  },
+  "entry_points": [],
+  "config_files": [
+    "backend\\Dockerfile",
+    "backend\\package.json",
+    "client\\docker-compose.yml",
+    "client\\Dockerfile",
+    "client\\package.json",
+    "client\\tsconfig.json"
+  ],
+  "data_model_files": [
+    "backend\\models\\recipe.js",
+    "backend\\models\\user.js"
+  ],
+  "api_layer_files": [
+    "backend\\controllers\\recipes.js",
+    "backend\\controllers\\users.js",
+    "backend\\middleware\\verifyToken.js",
+    "backend\\routes\\recipes.js",
+    "backend\\routes\\users.js"
+  ],
+  "test_files_count": 0
+}

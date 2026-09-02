@@ -1,0 +1,109 @@
+version: 1
+project_id: "unit1-capstone"
+last_updated: "2026-09-02T14:31:00Z"
+last_updated_after_feature: null
+
+tech_patterns:
+  express_mern:
+    tool: "Express 5 + Mongoose + React 19 + Vite"
+    pattern: "Full-stack MERN app: Express REST API (CommonJS) on port 3000, React/TypeScript SPA via Vite on port 5173"
+    injection: "Backend: require() in server.js; Frontend: ES module imports in main.tsx"
+  jwt_auth:
+    tool: "jsonwebtoken + bcrypt"
+    pattern: "JWT signed with JWT_SECRET (24h expiry); token attached to req.user by verifyToken middleware; password bcrypt-hashed via Mongoose pre-save hook"
+    injection: "verifyToken middleware applied per-route in routes/recipes.js; createJWT helper in controllers/users.js"
+  mongoose_embedded_docs:
+    tool: "Mongoose embedded sub-documents"
+    pattern: "Ingredients and instructions are embedded arrays within Recipe — not separate collections. Access sub-docs via .id() method for nested CRUD."
+    injection: "ingredientSchema and instructionSchema defined inline in models/recipe.js"
+  gemini_sse_proxy:
+    tool: "Google Gemini API + axios responseType:stream"
+    pattern: "Backend proxies SSE stream from Gemini to client — upstream.data.pipe(res). API key stays on server; client only talks to /api/ai/stream."
+    injection: "Planned in routes/ai.js; registered as app.use('/api/ai', require('./routes/ai')) in server.js"
+  vite_env:
+    tool: "Vite env vars"
+    pattern: "Frontend env vars use VITE_ prefix and import.meta.env. VITE_BACKEND_URL defaults to http://localhost:3000."
+    injection: "client/.env file; referenced via import.meta.env.VITE_BACKEND_URL in frontend code"
+
+integrations:
+  - "MongoDB (MONGO_URL env): primary document store for users and recipes via Mongoose"
+  - "Google Gemini API (GEMINI_API_KEY env): streaming SSE text generation proxied through backend /api/ai/stream"
+
+project_knowledge:
+  - id: "w0-t1"
+    topic: "instruction-routes-missing"
+    insight: "addInstruction, updateInstruction, deleteInstruction are fully implemented in controllers/recipes.js but wired to NO routes in routes/recipes.js — these are dead code until routes are added."
+    evidence: ["brownfield_import"]
+    wave_added: 0
+    revised_from: null
+  - id: "w0-t2"
+    topic: "frontend-is-skeleton"
+    insight: "client/src/App.tsx renders only 'Deloitte React Project' — all planned pages (Landing, Browse, Dashboard, AI Assistant) need to be built from scratch."
+    evidence: ["brownfield_import"]
+    wave_added: 0
+    revised_from: null
+  - id: "w0-t3"
+    topic: "ownership-check-pattern"
+    insight: "Recipe ownership is checked as ownerId.toString() !== req.user._id — ObjectId must be .toString()ed before comparing to the string from the JWT payload."
+    evidence: ["brownfield_import"]
+    wave_added: 0
+    revised_from: null
+  - id: "w0-t4"
+    topic: "jwt-secret-undefined-risk"
+    insight: "If JWT_SECRET env var is not set, tokens are signed with undefined — they will verify successfully but are trivially forgeable. Always set JWT_SECRET in backend .env."
+    evidence: ["brownfield_import"]
+    wave_added: 0
+    revised_from: null
+
+consumption_views:
+  quick_context: |
+    Spoonful is a bootcamp capstone MERN app: a recipe management platform where authenticated creators do CRUD on recipes (with embedded ingredients and instructions), and any visitor can browse/search publicly. The backend is a fully-implemented Express 5 REST API (CommonJS) on port 3000 with MongoDB via Mongoose and JWT auth. The React 19 + TypeScript frontend (Vite, port 5173) is a skeleton — only App.tsx exists; all pages are yet to be built. An AI Assistant feature (Google Gemini streaming SSE, proxied through the backend) is specified in DESIGN.md but not yet implemented. Both services run in Docker containers with separate Dockerfiles.
+  style_guide: |
+    ## Auth
+    - Set JWT_SECRET and MONGO_URL in backend/.env before running — missing JWT_SECRET makes tokens trivially forgeable.
+    - Never expose GEMINI_API_KEY to the client; all AI calls go through POST /api/ai/stream on the backend.
+    - Use Authorization: Bearer <token> header for protected routes; verifyToken middleware decodes to req.user.
+
+    ## API Patterns
+    - Public routes (GET /api/recipes, GET /api/recipes/:id, POST /api/users/*) need NO middleware.
+    - Protected routes must apply verifyToken before the controller in the route array.
+    - Ownership check: always compare recipe.ownerId.toString() !== req.user._id (ObjectId vs string).
+
+    ## Data Layer
+    - Recipes embed ingredients and instructions as Mongoose sub-documents — use .id() to find by sub-doc _id.
+    - ownerId on Recipe is set from req.user._id in the create controller — never accept it from req.body.
+    - Mongoose toJSON transform strips password from User — do not manually delete it in controllers.
+
+    ## Frontend
+    - Use VITE_ prefix for all client env vars; access via import.meta.env.VITE_*.
+    - Default VITE_BACKEND_URL to http://localhost:3000 for local dev.
+    - Use axios for all API calls; include Authorization header from stored JWT token.
+    - Add react-router-dom for SPA routing before building any pages.
+
+    ## Testing
+    - Capstone requires at least 4 React component tests — plan these from the start.
+  known_concerns: |
+    ## Instruction routes are missing
+    - WHEN: You call addInstruction/updateInstruction/deleteInstruction via the API.
+    - WHAT: 404 — no routes exist for these controller functions in routes/recipes.js.
+    - HOW: Add routes like POST /api/recipes/:id/instructions and PATCH /api/recipes/:id/instructions/:instructionId before expecting these to work.
+
+    ## JWT_SECRET not set
+    - WHEN: JWT_SECRET env var is absent from backend/.env.
+    - WHAT: Tokens sign and verify with undefined — any token with the right structure passes.
+    - HOW: Always set JWT_SECRET to a strong random string in backend/.env before running the server.
+
+    ## ObjectId string comparison
+    - WHEN: Checking recipe ownership with ownerId !== req.user._id.
+    - WHAT: Always returns true (never equal) because ownerId is an ObjectId and req.user._id is a string from the JWT.
+    - HOW: Always use ownerId.toString() !== req.user._id for the comparison.
+
+    ## Express 5 async errors
+    - WHEN: An async controller throws an uncaught error in Express 5.
+    - WHAT: Express 5 propagates async rejections automatically — no need for try/catch wrapper or next(err) in most cases, but explicit try/catch still clarifies intent.
+    - HOW: Wrap controller bodies in try/catch and return error responses explicitly to avoid relying on Express 5 default error handling.
+
+    ## SSE stream error on Gemini failure
+    - WHEN: The Gemini API returns an HTTP error (e.g., 429, 400) with responseType:'stream'.
+    - WHAT: err.response.data is a stream, not parsed JSON — reading it directly gives '[object Object]'.
+    - HOW: Manually read the stream chunks to string before logging/returning the error body (see pattern in README.md AI route snippet).

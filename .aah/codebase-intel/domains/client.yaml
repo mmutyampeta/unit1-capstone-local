@@ -1,0 +1,55 @@
+domain: "client"
+last_updated: "2026-09-02T14:31:00Z"
+last_updated_after_feature: null
+
+narrative: |
+  The client domain is the React 19 + TypeScript SPA built with Vite. It is currently a bare skeleton — App.tsx renders only a heading. All planned pages (Landing, Browse, Dashboard, AI Assistant) and routing infrastructure need to be built per the spec in DESIGN.md and the Figma reference. The client talks exclusively to the backend at VITE_BACKEND_URL (default: http://localhost:3000) — never directly to external APIs.
+
+source_files:
+  - path: "client/src/main.tsx"
+    line_range: "1-10"
+    role: "React root mount — renders App inside StrictMode into #root DOM element"
+  - path: "client/src/App.tsx"
+    line_range: "1-5"
+    role: "Root component (skeleton — currently just renders a heading)"
+  - path: "client/vite.config.ts"
+    line_range: "1-7"
+    role: "Vite build config with @vitejs/plugin-react"
+  - path: "client/package.json"
+    line_range: "1-30"
+    role: "Client dependencies: react 19, vite 7, typescript 5.8, eslint"
+
+flow_traces:
+  - name: "app bootstrap"
+    description: "How the React app starts up"
+    steps:
+      - "client/src/main.tsx:6 -> createRoot(document.getElementById('root')!)"
+      - "client/src/main.tsx:7 -> render(<StrictMode><App /></StrictMode>)"
+      - "client/src/App.tsx:1 -> App() returns <h1>Deloitte React Project</h1>"
+
+integration_points:
+  - target: "backend API"
+    mechanism: "HTTP calls via axios to VITE_BACKEND_URL (import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000')"
+    direction: "outbound"
+  - target: "auth domain"
+    mechanism: "JWT token stored client-side (localStorage or state); sent as Authorization: Bearer header on protected API calls"
+    direction: "outbound"
+
+known_issues:
+  - description: "App.tsx is a skeleton — all planned pages and routing are absent. The entire frontend needs to be implemented."
+    severity: "high"
+    workaround: "Install react-router-dom, add axios, build pages per DESIGN.md and Figma spec"
+  - description: "No tests exist — capstone requires at least 4 React component tests"
+    severity: "high"
+    workaround: "Plan and write component tests alongside feature implementation"
+  - description: "VITE_BACKEND_URL must be set in client/.env for environments other than localhost"
+    severity: "low"
+    workaround: "Create client/.env with VITE_BACKEND_URL=http://localhost:3000 for local dev"
+
+patterns:
+  - name: "env var convention"
+    description: "All client-side env vars use the VITE_ prefix and are accessed via import.meta.env. Never use process.env in Vite projects."
+    example_file: "client/vite.config.ts:1"
+  - name: "AI streaming consumption"
+    description: "AI Assistant page uses fetch with ReadableStream reader to consume SSE token-by-token from /api/ai/stream; accumulates fullText and updates state progressively."
+    example_file: "README.md (AIAssistant component reference)"

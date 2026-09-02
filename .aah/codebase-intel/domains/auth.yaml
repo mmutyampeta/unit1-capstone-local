@@ -1,0 +1,72 @@
+domain: "auth"
+last_updated: "2026-09-02T14:31:00Z"
+last_updated_after_feature: null
+
+narrative: |
+  The auth domain handles user registration, login, and request authentication for the Spoonful API. Users sign up or log in via controllers/users.js, which issues a signed JWT. The verifyToken middleware validates that JWT on every protected route, attaching the decoded user object to req.user for downstream controllers to use.
+
+source_files:
+  - path: "backend/controllers/users.js"
+    line_range: "1-42"
+    role: "signup and login handlers; createJWT helper that signs 24h tokens"
+  - path: "backend/middleware/verifyToken.js"
+    line_range: "1-15"
+    role: "JWT Bearer token extraction and verification; attaches decoded.user to req.user"
+  - path: "backend/models/user.js"
+    line_range: "1-41"
+    role: "User Mongoose schema with bcrypt pre-save hash and comparePassword instance method"
+  - path: "backend/routes/users.js"
+    line_range: "1-8"
+    role: "Route bindings: POST /signup and POST /login (no middleware)"
+
+flow_traces:
+  - name: "signup"
+    description: "Register a new user and return a JWT"
+    steps:
+      - "routes/users.js:5 -> POST /signup dispatches to usersCtrl.signup"
+      - "controllers/users.js:10 -> new User(req.body) instantiates schema"
+      - "models/user.js:27 -> pre('save') hook fires: bcrypt.hash replaces plain password"
+      - "controllers/users.js:13 -> user.save() persists to MongoDB"
+      - "controllers/users.js:14 -> createJWT(user) signs token with JWT_SECRET, 24h expiry"
+      - "controllers/users.js:15 -> res.json({ token }) returned to client"
+  - name: "login"
+    description: "Authenticate an existing user and return a JWT"
+    steps:
+      - "routes/users.js:6 -> POST /login dispatches to usersCtrl.login"
+      - "controllers/users.js:22 -> User.findOne({ email: req.body.email })"
+      - "controllers/users.js:24 -> 401 if user not found"
+      - "controllers/users.js:25 -> user.comparePassword(req.body.password, cb)"
+      - "models/user.js:37 -> bcrypt.compare(tryPassword, this.password, cb)"
+      - "controllers/users.js:27 -> createJWT(user) on match, res.json({ token })"
+  - name: "verifyToken"
+    description: "Middleware: extract and validate Bearer token, attach user to request"
+    steps:
+      - "middleware/verifyToken.js:5 -> req.headers.authorization.split(' ')[1] extracts token"
+      - "middleware/verifyToken.js:6 -> jwt.verify(token, process.env.JWT_SECRET) decodes"
+      - "middleware/verifyToken.js:8 -> decoded.user attached to req.user"
+      - "middleware/verifyToken.js:9 -> next() passes control to route handler"
+      - "middleware/verifyToken.js:11 -> 401 JSON on any error (missing/invalid/expired token)"
+
+integration_points:
+  - target: "recipes domain"
+    mechanism: "verifyToken middleware imported by routes/recipes.js and applied before protected handlers"
+    direction: "outbound"
+  - target: "MongoDB"
+    mechanism: "Mongoose User model — find and save operations"
+    direction: "outbound"
+
+known_issues:
+  - description: "JWT_SECRET not set in .env causes tokens to sign/verify with undefined — any token passes verification"
+    severity: "high"
+    workaround: "Always set JWT_SECRET in backend/.env to a strong random string before running"
+  - description: "req.user._id is a string (from JWT payload), while MongoDB ownerId is an ObjectId — direct equality fails"
+    severity: "medium"
+    workaround: "Use ownerId.toString() !== req.user._id in ownership checks"
+
+patterns:
+  - name: "pre-save bcrypt hook"
+    description: "Password is hashed in the Mongoose pre('save') hook — never in the controller. Only re-hashes when password is modified."
+    example_file: "backend/models/user.js:27"
+  - name: "toJSON password strip"
+    description: "User.toJSON transform deletes the password field before serialization — protects against accidental password exposure in responses."
+    example_file: "backend/models/user.js:19"
