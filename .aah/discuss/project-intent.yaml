@@ -1,0 +1,43 @@
+raw_statement: |
+  Complete the capstone in stages:
+  1. Confirm that the backend is setup correctly and is fully functional
+  2. Check design docs, build the React frontend (connect to backend, implement routing
+     navigation, responsive design CSS/Flexbox for mobile, tablet and desktop)
+  3. Write tests for 5 UI components
+  4. Write the AI Feature (text analyzer — user pastes text, Gemini summarizes it,
+     extracts key points, or classifies its tone)
+  Follow a quick development cycle: small features at a time, test as developed.
+
+improvement_type: enhancement
+
+target_areas:
+  - backend-verification           # validate existing Express API is correctly wired
+  - frontend-development           # React SPA: routing, pages, auth flow, recipe CRUD
+  - responsive-design              # CSS/Flexbox for mobile/tablet/desktop (Figma spec)
+  - component-testing              # 5 tested React components
+  - ai-integration                 # Gemini text-analyzer route + streaming frontend page
+
+constraints:
+  - Use axios for all API calls from the React frontend
+  - Match the Figma design (https://www.figma.com/design/4UKIjxdUxW0IodUmodX8j7/Spoonful)
+  - Gemini API key lives only in backend .env — never exposed to the browser
+  - AI feature is a text analyzer (summarize / extract key points / classify tone)
+  - AI feature accessible at its own route, no auth required
+  - Backend runs on localhost:3000 via docker-compose
+  - Quick development cycle: small incremental features, verify working before moving on
+  - Run locally with npm (backend: npm start / node server.js, frontend: npm run dev) — no Docker
+  - CSS/Flexbox (no CSS framework like Bootstrap/Tailwind unless explicitly chosen)
+
+technical_domains:
+  - frontend:          React 19 + TypeScript + Vite
+  - backend:           Node.js/Express 5 (already built)
+  - database:          MongoDB via Mongoose (already built)
+  - auth:              JWT Bearer tokens (already built)
+  - testing:           React component tests (framework TBD)
+  - ai:                Google Gemini API streaming SSE (text analyzer)
+
+integration_surface: 2   # backend API + Google Gemini (proxied)
+
+end_users:
+  - Guest visitors (browse/search recipes, use AI analyzer — no auth)
+  - Recipe creators (signup/login, create/edit/delete own recipes)

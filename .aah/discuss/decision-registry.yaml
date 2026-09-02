@@ -1,0 +1,376 @@
+schema_version: '1.0'
+project: unit1-capstone
+complexity: mvp
+archetype: ai-applications
+domain_ids: []
+archetypes: []
+started_at: '2026-09-02'
+pre_resolved:
+- slug_id: backend-language
+  value: Node.js/JavaScript (CommonJS)
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/tech-stack.md · code: all backend files
+    use require/module.exports CommonJS pattern'
+- slug_id: backend-framework
+  value: Express 5
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/dependency-map.md · code: express@^5.1.0
+    in backend/package.json'
+- slug_id: data-store-choice
+  value: MongoDB via Mongoose
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/tech-stack.md · code: mongoose.connect
+    in server.js:8, models/recipe.js and models/user.js'
+- slug_id: auth-strategy
+  value: JWT Bearer tokens (24h expiry, JWT_SECRET env var)
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/domains/auth.yaml · code: jsonwebtoken
+    sign/verify in controllers/users.js and middleware/verifyToken.js'
+- slug_id: password-security
+  value: bcrypt with 6 salt rounds via Mongoose pre-save hook
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: backend/models/user.js · code: bcrypt.hash in userSchema.pre(save)
+    at line 27'
+- slug_id: api-style
+  value: REST JSON
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/codebase-structure.md · code: all routes
+    return JSON, standard HTTP verbs'
+- slug_id: frontend-language
+  value: TypeScript
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: client/tsconfig.json · code: .tsx/.ts files, tsconfig.app.json
+    present in client/'
+- slug_id: frontend-framework
+  value: React 19 + Vite 7
+  source: codebase
+  locked: true
+  activates: []
+  notes: 'source-detail: .aah/codebase-intel/tech-stack.md · code: react@^19.1.1 and
+    vite@^7.1.0 in client/package.json'
+- slug_id: ai-provider
+  value: Google Gemini (gemini-3.6-flash, SSE streaming)
+  source: inferred
+  locked: true
+  activates: []
+  notes: 'source-detail: knowledge/DESIGN.md · brief: DESIGN.md and README.md both
+    specify Gemini streaming SSE via /api/ai/stream'
+- slug_id: ai-backend-proxy
+  value: Backend-only API key; frontend calls /api/ai/stream only
+  source: inferred
+  locked: true
+  activates: []
+  notes: 'source-detail: knowledge/DESIGN.md · brief: ''Your API key lives only in
+    the backend .env, and your React app only ever talks to your own API'''
+- slug_id: deployment-target
+  value: 'Local npm scripts only (backend: npm start, frontend: npm run dev) — no
+    Docker, no cloud'
+  source: user
+  locked: true
+  activates: []
+  notes: 'source-detail: user stated in discuss session · user: ''don''t worry about
+    Docker, we don''t need any container'''
+decisions:
+- slug_id: cloud-vs-local
+  area: Infrastructure
+  question: Where will this system run?
+  options_presented:
+  - cloud
+  - local
+  options_eliminated: []
+  response: local
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: running locally with npm only, no Docker, no cloud deployment'
+- slug_id: data-storage-present
+  area: Data
+  question: Does this system persist data?
+  options_presented:
+  - 'yes'
+  - 'no'
+  options_eliminated: []
+  response: 'yes'
+  response_type: single-select
+  source: codebase
+  activates: []
+  notes: 'code: MongoDB via Mongoose already wired in server.js'
+- slug_id: custom-ui-required
+  area: Frontend
+  question: Does this system need a custom user interface?
+  options_presented:
+  - 'yes'
+  - 'no'
+  options_eliminated: []
+  response: 'yes'
+  response_type: single-select
+  source: inferred
+  activates:
+  - ACT-UX
+  notes: 'brief: entire target_area is building the React SPA frontend'
+- slug_id: compliance-regimes
+  area: Compliance
+  question: Which compliance regimes apply?
+  options_presented:
+  - hipaa
+  - soc2
+  - gdpr
+  - pci-dss
+  - bsa-aml
+  - on-prem
+  - air-gapped
+  - sovereign
+  - none
+  options_eliminated: []
+  response: none
+  response_type: multi-select
+  source: inferred
+  activates: []
+  notes: 'inferred: bootcamp capstone project, no regulatory constraints'
+- slug_id: docker-installed
+  area: Infrastructure
+  question: Do you have Docker installed?
+  options_presented:
+  - 'yes'
+  - 'no'
+  options_eliminated: []
+  response: 'no'
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: ''don''t worry about Docker, we don''t need any container'''
+- slug_id: business-domain
+  area: Domain & Archetype
+  question: Which business domain applies?
+  options_presented:
+  - financial-services
+  - none
+  options_eliminated: []
+  response: none
+  response_type: single-select
+  source: inferred
+  activates: []
+  notes: no harness domain brief matches a recipe management web app
+- slug_id: technical-archetype
+  area: Domain & Archetype
+  question: Which technical archetype applies?
+  options_presented:
+  - ai-applications
+  - aws-native-services
+  - ai-infra-platforms
+  - none
+  options_eliminated: []
+  response: none
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: standard CRUD web app with a light AI feature — no archetype overlay
+    needed'
+- slug_id: routing-library
+  area: Frontend Routing & Auth
+  question: Which routing library?
+  options_presented:
+  - react-router-dom v6+
+  - tanstack-router
+  options_eliminated: []
+  response: react-router-dom v6+
+  response_type: single-select
+  source: inferred
+  activates: []
+  notes: DESIGN.md specifies routes /, /login, /recipes, /recipes/:id, /dashboard,
+    /ai-assistant; react-router-dom is the standard
+- slug_id: jwt-storage
+  area: Frontend Routing & Auth
+  question: How should the JWT be stored client-side?
+  options_presented:
+  - localStorage
+  - sessionStorage
+  - httpOnly cookie
+  options_eliminated: []
+  response: localStorage
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: simple, bootcamp project, XSS risk acceptable locally'
+- slug_id: global-state
+  area: Frontend Routing & Auth
+  question: How to manage auth state globally?
+  options_presented:
+  - React Context + useContext
+  - Zustand
+  - Redux Toolkit
+  options_eliminated: []
+  response: React Context + useContext
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: built-in, no extra deps, sufficient for this scale'
+- slug_id: css-organization
+  area: CSS & Responsive Design
+  question: How should CSS be organized?
+  options_presented:
+  - one CSS file per component
+  - single global stylesheet
+  - CSS Modules
+  options_eliminated: []
+  response: one CSS file per component
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: one .css per component, clean separation, compatible with Vite'
+- slug_id: responsive-breakpoints
+  area: CSS & Responsive Design
+  question: Which breakpoints to use?
+  options_presented:
+  - mobile-first 480/768/1024
+  - desktop-first 1024/768/480
+  - follow Figma
+  options_eliminated: []
+  response: 'desktop-first: 1024px / 768px / 480px'
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: desktop-first, shrink down with media queries'
+- slug_id: css-approach
+  area: CSS & Responsive Design
+  question: CSS methodology?
+  options_presented:
+  - vanilla CSS + Flexbox
+  - Tailwind
+  - Bootstrap
+  options_eliminated: []
+  response: vanilla CSS + Flexbox (per project-brief)
+  response_type: single-select
+  source: inferred
+  activates: []
+  notes: brief explicitly requires CSS/Flexbox; no framework
+- slug_id: testing-framework
+  area: Testing
+  question: Which testing framework?
+  options_presented:
+  - Vitest + React Testing Library
+  - Jest + React Testing Library
+  - Playwright
+  options_eliminated: []
+  response: Vitest + React Testing Library
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: native Vite integration, zero extra config, fast'
+- slug_id: test-targets
+  area: Testing
+  question: Which 5 components to test?
+  options_presented:
+  - Navbar+RecipeCard+RecipeForm+SearchBar+LoginForm
+  - Navbar+RecipeCard+RecipeForm+AIAssistant+LoginForm
+  - decide later
+  options_eliminated: []
+  response: Navbar, RecipeCard, RecipeForm, SearchBar, LoginForm
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: covers main UI surface area across all major user flows'
+- slug_id: ai-rendering
+  area: AI Feature
+  question: How should AI response be displayed?
+  options_presented:
+  - streaming token-by-token
+  - wait for full response
+  options_eliminated: []
+  response: streaming token-by-token (SSE ReadableStream)
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: progressive display, matches backend SSE spec'
+- slug_id: ai-ux-controls
+  area: AI Feature
+  question: How does user select analysis type?
+  options_presented:
+  - three action buttons
+  - dropdown + submit
+  - free text prompt
+  options_eliminated: []
+  response: 'three action buttons: Summarize / Key Points / Classify Tone'
+  response_type: single-select
+  source: user
+  activates: []
+  notes: 'user: explicit UX, each button sends a prefixed prompt to Gemini'
+- slug_id: ai-session-history
+  area: AI Feature
+  question: Session history policy?
+  options_presented:
+  - last 3 in-memory
+  - no history
+  - persistent
+  options_eliminated: []
+  response: last 3 prompt/response pairs in-memory (React state, not persisted)
+  response_type: single-select
+  source: inferred
+  activates: []
+  notes: DESIGN.md specifies last 3 pairs; capstone spec says no persistence required
+- slug_id: ai-route
+  area: AI Feature
+  question: What route does the AI feature live on?
+  options_presented:
+  - /ai-assistant
+  - /analyze
+  - /tools
+  options_eliminated: []
+  response: C:/Users/mmutyampeta/AppData/Local/Programs/Git/ai-assistant (linked from
+    main nav, no auth required)
+  response_type: single-select
+  source: user
+  activates: []
+  notes: DESIGN.md specifies GET /ai-assistant, accessible to all users, linked from
+    navigation
+  revised_from:
+  - response: C:/Users/mmutyampeta/AppData/Local/Programs/Git/ai-assistant (linked
+      from main nav, no auth required)
+    revised_at: '2026-09-02'
+    reason: shell path expansion corrupted the leading slash; correcting to the intended
+      route value
+deferred_ideas: []
+constraint_audit:
+  passed: true
+  ran_at: '2026-09-02'
+  checks:
+    A_mandatory_coverage:
+      result: pass
+      detail: clean
+    B_forbidden_options:
+      result: pass
+      detail: clean
+    C_whitelist:
+      result: pass
+      detail: clean
+    D_service_scope:
+      result: pass
+      detail: clean
+    E_mandated_options:
+      result: pass
+      detail: clean
+    F_provenance:
+      result: pass
+      detail: clean
+  violations: []
+  flags: []
+  warnings: []
+active_references:
+  computed_at: '2026-09-02'
+  guidance_references: []
+  domain_brief_paths: []
+  archetype_playbook_paths: []
