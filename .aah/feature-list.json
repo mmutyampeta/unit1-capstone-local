@@ -1,7 +1,7 @@
 {
   "features": [
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-000",
       "title": "Walking Skeleton \u2014 Backend Verification & Frontend Scaffold",
       "module_ref": "MOD-000",
@@ -56,7 +56,7 @@
       "passes": false
     },
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-001",
       "title": "Guest Recipe Discovery \u2014 Landing, Browse & Detail",
       "module_ref": "MOD-001",
@@ -105,7 +105,7 @@
       "passes": false
     },
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-002",
       "title": "Creator Auth Flow and Protected Dashboard",
       "module_ref": "MOD-002",
@@ -154,7 +154,7 @@
       "passes": false
     },
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-003",
       "title": "Recipe CRUD \u2014 Create, Edit & Delete",
       "module_ref": "MOD-003",
@@ -203,7 +203,7 @@
       "passes": false
     },
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-004",
       "title": "AI Assistant \u2014 Gemini Streaming Text Analyzer",
       "module_ref": "MOD-004",
@@ -255,7 +255,7 @@
       "passes": false
     },
     {
-      "status": "pending",
+      "status": "planned",
       "id": "F-MOD-005",
       "title": "Component Tests & Responsive CSS Polish",
       "module_ref": "MOD-005",

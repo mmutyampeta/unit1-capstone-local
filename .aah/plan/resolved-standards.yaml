@@ -1,0 +1,185 @@
+generated_at: '2026-09-02T16:22:27.570738+00:00'
+project: unit1-capstone
+stack:
+  language: ''
+  framework: ''
+  domain: ''
+sources:
+- type: company
+  file: knowledge\DESIGN.md
+  name: Extracted from DESIGN.md
+  rules_loaded: 6
+  extraction: heuristic
+- type: industry-default
+  file: industry-defaults.yaml
+  rules_loaded: 15
+rules:
+- id: TS-SEC-001
+  category: security
+  priority: critical
+  description: No hardcoded credentials, API keys, tokens, or secrets in source code
+    or client-side bundles.
+  remediation: Use environment variables with typed config objects, or a secrets manager.
+  source: industry-default
+- id: TS-SEC-002
+  category: security
+  priority: critical
+  description: 'Prevent XSS: never insert unsanitized user input into innerHTML or
+    dangerouslySetInnerHTML.'
+  remediation: Use textContent, sanitize with DOMPurify, or use framework-provided
+    escaping.
+  source: industry-default
+- id: RX-SEC-001
+  category: security
+  priority: critical
+  description: Never use dangerouslySetInnerHTML with unsanitized user input. If HTML
+    rendering is required, sanitize with DOMPurify first.
+  remediation: Use DOMPurify.sanitize(userInput) before passing to dangerouslySetInnerHTML,
+    or avoid it entirely.
+  source: industry-default
+- id: RX-SEC-002
+  category: security
+  priority: critical
+  description: Never store secrets, API keys, or tokens in client-side code, localStorage,
+    or sessionStorage. Use httpOnly cookies for auth tokens.
+  remediation: Move secrets to server-side. Store auth tokens in httpOnly, secure,
+    sameSite cookies.
+  source: industry-default
+- id: EXTRACTED-002
+  category: conventions
+  priority: high
+  description: '```js { "title": "Steak baby!", "description": "Crunchy romaine with
+    creamy cashew Caesar dressing.", "image": "https://example.com/images/vegan-caesar.jpg",
+    "ingredients": [ { "name": "Romaine lettuce", "quantity": "1 head" }, { "name":
+    "Cashews", "quantity": "1/2 cup" }, { "name": "Lemon juice", "quantity": "2 tbsp"
+    }, { "name": "Dijon mustard", "quantity": "1 tsp" }, { "name": "Garlic clove",
+    "quantity": "1" } ], "instructions": [ { "step": 1, "description": "Blend the
+    cashews, lemon juice, mustard, and garlic until smooth." }, { "step": 2, "description":
+    "Chop romaine lettuce and place in a bowl." }, { "step": 3, "description": "Toss
+    with the blended dressing and serve chilled." } ], "tags": ["vegan", "salad",
+    "healthy"]'
+  source: company
+- id: EXTRACTED-003
+  category: conventions
+  priority: high
+  description: '- Confirmation prompt required.'
+  source: company
+- id: EXTRACTED-004
+  category: authentication
+  priority: high
+  description: '**Acceptance Criteria:** - No login required to view recipes.'
+  source: company
+- id: EXTRACTED-005
+  category: security
+  priority: high
+  description: The API key lives only on the backend; the frontend never talks to
+    Gemini directly.
+  source: company
+- id: EXTRACTED-006
+  category: authentication
+  priority: high
+  description: '- **GET /ai-assistant** → New route, reachable from main navigation,
+    accessible to all users (no auth required) - User submits a prompt via a text
+    input - Frontend calls `POST /api/ai/stream` with `{ "prompt": "..." }` - Response
+    streams back token-by-token and renders progressively in the UI - Last 3 prompt/response
+    pairs are kept in session history (client-side state, not persisted)'
+  source: company
+- id: TS-TYPE-001
+  category: type_safety
+  priority: high
+  description: Never use 'any' type. Use 'unknown' for truly unknown types and narrow
+    with type guards.
+  remediation: Replace 'any' with specific types, union types, generics, or 'unknown'
+    with runtime checks.
+  source: industry-default
+- id: TS-TYPE-002
+  category: type_safety
+  priority: high
+  description: 'Enable strict mode in tsconfig.json: strict: true (includes strictNullChecks,
+    noImplicitAny, strictFunctionTypes).'
+  remediation: 'Set "strict": true in tsconfig.json compilerOptions.'
+  source: industry-default
+- id: TS-TEST-001
+  category: testing
+  priority: high
+  description: New feature code must have at least 80% line coverage with functional
+    tests. No mock frameworks allowed.
+  remediation: Add functional tests with real services. Use type-safe test utilities.
+  source: industry-default
+- id: TS-ERR-001
+  category: error_handling
+  priority: high
+  description: Define typed error classes instead of throwing plain strings or generic
+    Error. Use Result types for recoverable failures.
+  remediation: Create custom error classes extending Error, or use a Result<T, E>
+    pattern.
+  source: industry-default
+- id: RX-ARCH-001
+  category: architecture
+  priority: high
+  description: 'Follow React hooks rules: only call hooks at the top level (never
+    inside loops, conditions, or nested functions). Only call hooks from React function
+    components or custom hooks.'
+  remediation: Move hook calls to the top level of the component function. Extract
+    conditional logic below the hook calls.
+  source: industry-default
+- id: RX-ARCH-002
+  category: architecture
+  priority: high
+  description: Components should be small and focused on one responsibility. Extract
+    reusable UI into shared components. Keep business logic out of components — use
+    custom hooks or service modules.
+  remediation: Split large components. Move data fetching to custom hooks. Move business
+    logic to utility modules.
+  source: industry-default
+- id: RX-A11Y-001
+  category: accessibility
+  priority: high
+  description: All interactive elements must be keyboard accessible. Use semantic
+    HTML (button, a, input) instead of div/span with onClick. Add aria-label for icon-only
+    buttons.
+  remediation: Replace <div onClick> with <button>. Add aria-label, role, and tabIndex
+    where needed.
+  source: industry-default
+- id: EXTRACTED-001
+  category: conventions
+  priority: medium
+  description: '**Backend server** - is on a `localhost:3000` **axios** - should be
+    used for api calls'
+  source: company
+- id: TS-TYPE-003
+  category: type_safety
+  priority: medium
+  description: Use discriminated unions instead of optional properties for mutually
+    exclusive states. Avoid boolean flags that create invalid states.
+  remediation: Model states as union types with a literal discriminant field.
+  source: industry-default
+- id: RX-A11Y-002
+  category: accessibility
+  priority: medium
+  description: All images must have meaningful alt text. Decorative images should
+    have alt=''. Form inputs must have associated labels.
+  remediation: Add alt attributes to <img>. Add <label htmlFor> for every <input>.
+  source: industry-default
+- id: RX-PERF-001
+  category: performance
+  priority: medium
+  description: Avoid unnecessary re-renders. Use React.memo for expensive pure components,
+    useMemo for expensive computations, and useCallback for callback props.
+  remediation: Wrap expensive components in React.memo(). Use useMemo/useCallback
+    where profiling shows wasted renders.
+  source: industry-default
+- id: TS-CONV-001
+  category: conventions
+  priority: low
+  description: Use camelCase for variables/functions, PascalCase for classes/interfaces/types/enums,
+    UPPER_SNAKE_CASE for constants.
+  remediation: Rename identifiers to match TypeScript conventions.
+  source: industry-default
+summary:
+  total: 21
+  critical: 4
+  high: 12
+  medium: 4
+  low: 1
+  disabled: []
